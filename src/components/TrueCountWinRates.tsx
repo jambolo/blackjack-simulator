@@ -113,6 +113,7 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     tick={{ fontSize: 12 }}
                     label={{ value: 'Win Rate (%)', angle: -90, position: 'insideLeft' }}
                     domain={[yAxisMin, yAxisMax]}
+                    tickFormatter={(value) => `${Math.round(value)}%`}
                   />
                   <Tooltip content={<WinRateTooltip />} />
                   {/* Reference line at 50% */}
