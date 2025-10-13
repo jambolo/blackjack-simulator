@@ -51,14 +51,8 @@ export function TrueCountHistogram({ trueCountFrequency }: TrueCountHistogramPro
     <Card className="p-6">
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">True Count Distribution (Hi-Lo System)</h3>
-        <div className="text-sm text-muted-foreground mb-4 space-y-2">
+        <div className="text-sm text-muted-foreground mb-4">
           <p>Frequency of true count values at the beginning of each round</p>
-          <div className="bg-muted p-3 rounded-lg">
-            <p className="font-medium mb-1">Hi-Lo Counting System:</p>
-            <p>• Low cards (2-6): +1 • Neutral cards (7-9): 0 • High cards (10,J,Q,K,A): -1</p>
-            <p>• True Count = Running Count ÷ Decks Remaining</p>
-            <p>• Positive counts favor the player (more high cards left)</p>
-          </div>
         </div>
         
         {totalHands > 0 && (
