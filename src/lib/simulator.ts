@@ -3,6 +3,7 @@ import { Deck, HandCalculator } from './blackjack-engine';
 import { PlayerLogic } from './player-logic';
 import { DealerLogic } from './dealer-logic';
 import { StrategyManager } from './strategy-loader';
+import { HiLoCounter } from './card-counter';
 
 export class BlackjackGame {
   private deck: Deck;
@@ -11,6 +12,7 @@ export class BlackjackGame {
   private playerLogic: PlayerLogic;
   private dealerLogic: DealerLogic;
   private initialized: boolean = false;
+  private cardCounter: HiLoCounter;
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
@@ -19,6 +21,7 @@ export class BlackjackGame {
     this.stats = this.initializeStats();
     this.playerLogic = new PlayerLogic(rules, this.stats);
     this.dealerLogic = new DealerLogic(rules);
+    this.cardCounter = new HiLoCounter(deckCount);
   }
 
   /**
@@ -46,6 +49,7 @@ export class BlackjackGame {
       winRate: 0,
       houseEdge: 0,
       standardDeviation: 0,
+      trueCountFrequency: {},
     };
   }
 
@@ -67,11 +71,11 @@ export class BlackjackGame {
   }
 
   private playDealerHand(dealerHand: Hand): Hand {
-    return this.dealerLogic.playDealerHand(dealerHand, this.deck);
+    return this.dealerLogic.playDealerHand(dealerHand, this.deck, this.cardCounter);
   }
 
   private playPlayerHand(playerHand: Hand, dealerUpCard: number, canSplit: boolean = true, splitCount: number = 0): Hand[] {
-    return this.playerLogic.playPlayerHands(playerHand, dealerUpCard, this.deck, canSplit, splitCount);
+    return this.playerLogic.playPlayerHands(playerHand, dealerUpCard, this.deck, this.cardCounter, canSplit, splitCount);
   }
 
   private calculateResults(playerHands: Hand[], dealerHand: Hand): GameResult {
@@ -131,14 +135,32 @@ export class BlackjackGame {
       // Continuous shuffle - reset deck after every hand
       const deckCount = 6;
       this.deck.reset(deckCount);
+      this.cardCounter.reset(deckCount);
     } else if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount as number)) {
       this.deck.reset(this.rules.deckCount as number);
+      this.cardCounter.reset(this.rules.deckCount as number);
       this.stats.totalShoes++;
     }
 
+    // Record true count at the beginning of the round
+    const trueCountAtStart = this.cardCounter.getTrueCountInteger();
+    if (this.stats.trueCountFrequency[trueCountAtStart]) {
+      this.stats.trueCountFrequency[trueCountAtStart]++;
+    } else {
+      this.stats.trueCountFrequency[trueCountAtStart] = 1;
+    }
+
     // Deal initial cards
-    const playerHand = this.createHand([this.deck.deal(), this.deck.deal()]);
-    const dealerHand = this.dealerLogic.createHand([this.deck.deal(), this.deck.deal()]);
+    const playerCard1 = this.deck.deal();
+    const dealerCard1 = this.deck.deal();
+    const playerCard2 = this.deck.deal();
+    const dealerCard2 = this.deck.deal();
+
+    // Count the initial cards
+    this.cardCounter.countCards([playerCard1, dealerCard1, playerCard2, dealerCard2]);
+
+    const playerHand = this.createHand([playerCard1, playerCard2]);
+    const dealerHand = this.dealerLogic.createHand([dealerCard1, dealerCard2]);
 
     // Check for dealer blackjack (American style - peek)
     if (this.dealerLogic.hasBlackjack(dealerHand)) {

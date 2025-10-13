@@ -49,6 +49,7 @@ export interface SimulationStats {
   winRate: number;
   houseEdge: number;
   standardDeviation: number;
+  trueCountFrequency: Record<number, number>;
 }
 
 export const DEFAULT_RULES: BlackjackRules = {

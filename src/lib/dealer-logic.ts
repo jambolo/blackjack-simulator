@@ -1,5 +1,6 @@
 import { Hand, Card, BlackjackRules } from './types';
 import { HandCalculator, Deck } from './blackjack-engine';
+import { HiLoCounter } from './card-counter';
 
 export class DealerLogic {
   private rules: BlackjackRules;
@@ -12,12 +13,14 @@ export class DealerLogic {
    * Plays the dealer hand according to house rules
    * @param dealerHand The dealer's initial hand
    * @param deck The deck to deal cards from
+   * @param cardCounter The card counter to track dealt cards
    * @returns The completed dealer hand
    */
-  playDealerHand(dealerHand: Hand, deck: Deck): Hand {
+  playDealerHand(dealerHand: Hand, deck: Deck, cardCounter: HiLoCounter): Hand {
     // Continue hitting while dealer should hit
     while (this.shouldDealerHit(dealerHand)) {
       const card = deck.deal();
+      cardCounter.countCard(card);
       dealerHand.cards.push(card);
       this.recalculateHand(dealerHand);
     }

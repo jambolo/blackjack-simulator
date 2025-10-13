@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SimulationStats } from "@/lib/types";
+import { TrueCountHistogram } from "@/components/TrueCountHistogram";
 import { TrendUp, TrendDown, Minus, Trophy } from "@phosphor-icons/react";
 
 interface SimulationResultsProps {
@@ -40,10 +41,11 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
       </h2>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="outcomes">Hand Outcomes</TabsTrigger>
           <TabsTrigger value="actions">Player Actions</TabsTrigger>
+          <TabsTrigger value="counting">Card Counting</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -210,6 +212,10 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="counting" className="space-y-4">
+          <TrueCountHistogram trueCountFrequency={stats.trueCountFrequency} />
         </TabsContent>
       </Tabs>
     </Card>

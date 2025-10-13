@@ -1,6 +1,7 @@
 import { Hand, Card, BlackjackRules } from './types';
 import { HandCalculator, Deck } from './blackjack-engine';
 import { OptimizedBasicStrategy, StrategyManager } from './strategy-loader';
+import { HiLoCounter } from './card-counter';
 
 export class PlayerLogic {
   private rules: BlackjackRules;
@@ -51,6 +52,7 @@ export class PlayerLogic {
    * @param playerHand The initial player hand
    * @param dealerUpCard The dealer's up card value
    * @param deck The deck to deal cards from
+   * @param cardCounter The card counter to track dealt cards
    * @param canSplit Whether splitting is allowed (default: true)
    * @param splitCount Current number of splits (default: 0)
    * @returns Array of final player hands after all decisions
@@ -59,6 +61,7 @@ export class PlayerLogic {
     playerHand: Hand, 
     dealerUpCard: number, 
     deck: Deck,
+    cardCounter: HiLoCounter,
     canSplit: boolean = true, 
     splitCount: number = 0
   ): Hand[] {
@@ -85,7 +88,7 @@ export class PlayerLogic {
 
       // Check for split
       if (this.shouldAttemptSplit(currentHand, canSplit, splitCount, dealerUpCard, strategy)) {
-        const newHand = this.performSplit(currentHand, deck, hands);
+        const newHand = this.performSplit(currentHand, deck, cardCounter, hands);
         if (newHand) {
           splitCount++;
           this.stats.splits++;
@@ -102,11 +105,11 @@ export class PlayerLogic {
       const action = this.getPlayerAction(currentHand, dealerUpCard, splitCount, strategy);
       
       if (action === 'double') {
-        this.performDouble(currentHand, deck);
+        this.performDouble(currentHand, deck, cardCounter);
         this.stats.doubles++;
         currentHandIndex++;
       } else if (action === 'hit') {
-        this.performHit(currentHand, deck);
+        this.performHit(currentHand, deck, cardCounter);
         
         // Move to next hand if busted
         if (currentHand.total > 21) {
@@ -192,15 +195,19 @@ export class PlayerLogic {
   /**
    * Performs a split operation on the current hand
    */
-  private performSplit(currentHand: Hand, deck: Deck, hands: Hand[]): Hand | null {
+  private performSplit(currentHand: Hand, deck: Deck, cardCounter: HiLoCounter, hands: Hand[]): Hand | null {
     const secondCard = currentHand.cards.pop();
     if (!secondCard) return null;
 
     const newHand = this.createHand([secondCard], currentHand.bet);
     
     // Deal new cards to both hands
-    currentHand.cards.push(deck.deal());
-    newHand.cards.push(deck.deal());
+    const card1 = deck.deal();
+    const card2 = deck.deal();
+    cardCounter.countCards([card1, card2]);
+    
+    currentHand.cards.push(card1);
+    newHand.cards.push(card2);
     
     // Recalculate totals for both hands
     this.recalculateHand(currentHand);
@@ -306,18 +313,22 @@ export class PlayerLogic {
   /**
    * Performs a double down action
    */
-  private performDouble(hand: Hand, deck: Deck): void {
+  private performDouble(hand: Hand, deck: Deck, cardCounter: HiLoCounter): void {
     hand.doubled = true;
     hand.bet *= 2;
-    hand.cards.push(deck.deal());
+    const card = deck.deal();
+    cardCounter.countCard(card);
+    hand.cards.push(card);
     this.recalculateHand(hand);
   }
 
   /**
    * Performs a hit action
    */
-  private performHit(hand: Hand, deck: Deck): void {
-    hand.cards.push(deck.deal());
+  private performHit(hand: Hand, deck: Deck, cardCounter: HiLoCounter): void {
+    const card = deck.deal();
+    cardCounter.countCard(card);
+    hand.cards.push(card);
     this.recalculateHand(hand);
   }
 
