@@ -130,7 +130,7 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
                   <span className="font-medium">{avgHandsPerShoe.toFixed(1)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Standard Deviation:</span>
+                  <span className="text-muted-foreground">Standard Deviation (Winnings):</span>
                   <span className="font-medium">{stats.standardDeviation.toFixed(2)}</span>
                 </div>
               </div>
