@@ -7,7 +7,7 @@ import { RuleConfiguration } from "@/components/RuleConfiguration";
 import { SimulationProgress } from "@/components/SimulationProgress";
 import { SimulationResults } from "@/components/SimulationResults";
 import { StrategyStatus } from "@/components/StrategyStatus";
-import { BlackjackRules, SimulationStats, DEFAULT_RULES } from "@/lib/types";
+import { BlackjackRules, SimulationConfig, SimulationStats, DEFAULT_RULES, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
 import { runSimulation } from "@/lib/simulator";
 import { debugStrategyLoading } from "@/lib/strategy-registry";
 import { Play, Square } from "@phosphor-icons/react";
@@ -20,6 +20,7 @@ if (import.meta.env.DEV) {
 
 function App() {
   const [rules, setRules] = useKV<BlackjackRules>('blackjack-rules', DEFAULT_RULES);
+  const [simulationConfig, setSimulationConfig] = useKV<SimulationConfig>('simulation-config', DEFAULT_SIMULATION_CONFIG);
   const [isSimulating, setIsSimulating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStats, setCurrentStats] = useState<SimulationStats | null>(null);
@@ -52,7 +53,7 @@ function App() {
       
       const stats = await runSimulation(
         rules || DEFAULT_RULES,
-        1000,
+        simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount,
         (progressPercent, stats) => {
           if (controller.signal.aborted) return;
           setProgress(progressPercent);
@@ -63,7 +64,8 @@ function App() {
       if (!controller.signal.aborted) {
         setFinalStats(stats);
         setProgress(100);
-        toast.success(`Simulation complete! Played ${stats.totalHands.toLocaleString()} hands across ${stats.totalShoes} shoes.`);
+        const shoeCount = simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount;
+        toast.success(`Simulation complete! Played ${stats.totalHands.toLocaleString()} hands across ${stats.totalShoes} shoes (${shoeCount.toLocaleString()} requested).`);
       }
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -89,14 +91,19 @@ function App() {
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Analyze different blackjack rule variations using optimal basic strategy. 
-            Simulate 1000 shoes to understand house edge and expected outcomes.
+            Configure and simulate thousands to millions of shoes to understand house edge and expected outcomes.
           </p>
         </div>
 
         {/* Configuration */}
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <RuleConfiguration rules={rules || DEFAULT_RULES} onRulesChange={setRules} />
+            <RuleConfiguration 
+              rules={rules || DEFAULT_RULES} 
+              simulationConfig={simulationConfig || DEFAULT_SIMULATION_CONFIG}
+              onRulesChange={setRules}
+              onSimulationConfigChange={setSimulationConfig}
+            />
           </div>
           <div>
             <StrategyStatus rules={rules || DEFAULT_RULES} />
@@ -109,7 +116,7 @@ function App() {
             <div>
               <h3 className="text-lg font-semibold">Simulation Control</h3>
               <p className="text-sm text-muted-foreground">
-                Run 1000 shoes using optimal basic strategy
+                Run {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} shoes using optimal basic strategy
               </p>
             </div>
             <Button

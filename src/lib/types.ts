@@ -8,6 +8,10 @@ export interface BlackjackRules {
   lateSurrender: boolean;
 }
 
+export interface SimulationConfig {
+  shoeCount: number;
+}
+
 export interface Card {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
   rank: 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
@@ -55,6 +59,10 @@ export const DEFAULT_RULES: BlackjackRules = {
   resplitAces: false,
   hitAfterSplitAces: false,
   lateSurrender: false,
+};
+
+export const DEFAULT_SIMULATION_CONFIG: SimulationConfig = {
+  shoeCount: 100000,
 };
 
 export const VALID_PENETRATIONS: Record<BlackjackRules['deckCount'], number[]> = {
