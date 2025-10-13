@@ -154,7 +154,7 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     scale="linear"
                     domain={[-8, 8]}
                     tick={{ fontSize: 12 }}
-                    axisLine={false}
+                    axisLine={true}
                     orientation="bottom"
                   />
                   <YAxis 
@@ -168,13 +168,6 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                   {/* X-axis reference line at y=0 */}
                   <ReferenceLine 
                     y={0} 
-                    stroke="hsl(var(--foreground))" 
-                    strokeWidth={2}
-                    strokeDasharray="none"
-                  />
-                  {/* Y-axis reference line at x=0 */}
-                  <ReferenceLine 
-                    x={0} 
                     stroke="hsl(var(--foreground))" 
                     strokeWidth={2}
                     strokeDasharray="none"
