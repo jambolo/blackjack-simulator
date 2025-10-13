@@ -216,8 +216,8 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
         </TabsContent>
 
         <TabsContent value="counting" className="space-y-6">
-          <TrueCountWinRates trueCountStats={stats.trueCountStats} />
-          <TrueCountHistogram trueCountFrequency={stats.trueCountFrequency} />
+          <TrueCountWinRates trueCountStats={stats.trueCountStats || {}} />
+          <TrueCountHistogram trueCountFrequency={stats.trueCountFrequency || {}} />
         </TabsContent>
       </Tabs>
     </Card>

@@ -6,8 +6,11 @@ interface TrueCountHistogramProps {
 }
 
 export function TrueCountHistogram({ trueCountFrequency }: TrueCountHistogramProps) {
+  // Ensure we have valid data
+  const safeFrequency = trueCountFrequency || {};
+  
   // Convert the frequency data to chart format
-  const chartData = Object.entries(trueCountFrequency)
+  const chartData = Object.entries(safeFrequency)
     .map(([count, frequency]) => ({
       trueCount: parseInt(count),
       frequency: frequency,
@@ -16,7 +19,7 @@ export function TrueCountHistogram({ trueCountFrequency }: TrueCountHistogramPro
     .sort((a, b) => a.trueCount - b.trueCount);
 
   // Calculate total hands and percentages
-  const totalHands = Object.values(trueCountFrequency).reduce((sum, freq) => sum + freq, 0);
+  const totalHands = Object.values(safeFrequency).reduce((sum, freq) => sum + freq, 0);
   chartData.forEach(item => {
     item.percentage = totalHands > 0 ? (item.frequency / totalHands) * 100 : 0;
   });
@@ -38,14 +41,13 @@ export function TrueCountHistogram({ trueCountFrequency }: TrueCountHistogramPro
 
   // Get the range of true counts for better display
   const trueCountValues = chartData.map(d => d.trueCount);
-  const minCount = Math.min(...trueCountValues);
-  const maxCount = Math.max(...trueCountValues);
+  const minCount = trueCountValues.length > 0 ? Math.min(...trueCountValues) : 0;
+  const maxCount = trueCountValues.length > 0 ? Math.max(...trueCountValues) : 0;
 
   // Find the most frequent true count
-  const mostFrequent = chartData.reduce((max, item) => 
-    item.frequency > max.frequency ? item : max, 
-    chartData[0]
-  );
+  const mostFrequent = chartData.length > 0 ? chartData.reduce((max, item) => 
+    item.frequency > max.frequency ? item : max
+  ) : { trueCount: 0, frequency: 0, percentage: 0 };
 
   return (
     <Card className="p-6">

@@ -7,8 +7,11 @@ interface TrueCountWinRatesProps {
 }
 
 export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
+  // Ensure we have valid data
+  const safeStats = trueCountStats || {};
+  
   // Convert the stats data to chart format
-  const chartData = Object.entries(trueCountStats)
+  const chartData = Object.entries(safeStats)
     .map(([count, stats]) => ({
       trueCount: parseInt(count),
       winRate: stats.winRate,
@@ -37,19 +40,17 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
 
   // Calculate some summary statistics
   const totalHands = chartData.reduce((sum, item) => sum + item.hands, 0);
-  const bestCount = chartData.reduce((best, item) => 
-    item.winRate > best.winRate ? item : best, 
-    chartData[0] || { trueCount: 0, winRate: 0 }
-  );
-  const worstCount = chartData.reduce((worst, item) => 
-    item.winRate < worst.winRate ? item : worst, 
-    chartData[0] || { trueCount: 0, winRate: 0 }
-  );
+  const bestCount = chartData.length > 0 ? chartData.reduce((best, item) => 
+    item.winRate > best.winRate ? item : best
+  ) : { trueCount: 0, winRate: 0, hands: 0 };
+  const worstCount = chartData.length > 0 ? chartData.reduce((worst, item) => 
+    item.winRate < worst.winRate ? item : worst
+  ) : { trueCount: 0, winRate: 0, hands: 0 };
 
   // Find the range for better display
   const trueCountValues = chartData.map(d => d.trueCount);
-  const minCount = Math.min(...trueCountValues);
-  const maxCount = Math.max(...trueCountValues);
+  const minCount = trueCountValues.length > 0 ? Math.min(...trueCountValues) : 0;
+  const maxCount = trueCountValues.length > 0 ? Math.max(...trueCountValues) : 0;
 
   return (
     <Card className="p-6">
