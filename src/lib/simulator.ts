@@ -14,6 +14,8 @@ export class BlackjackGame {
   private initialized: boolean = false;
   private cardCounter: HiLoCounter;
   private currentHandTrueCount: number = 0;
+  private completedShoes: number = 0;
+  private currentShoeHands: number = 0;
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
@@ -23,8 +25,10 @@ export class BlackjackGame {
     this.playerLogic = new PlayerLogic(rules, this.stats);
     this.dealerLogic = new DealerLogic(rules);
     this.cardCounter = new HiLoCounter(deckCount);
+    this.completedShoes = 0;
+    this.currentShoeHands = 0;
     
-    // Count the initial shoe
+    // Start counting from 1 since we're starting with the first shoe
     this.stats.totalShoes = 1;
   }
 
@@ -135,16 +139,28 @@ export class BlackjackGame {
   }
 
   playHand(): GameResult {
-    // Check if new shoe is needed
+    // For continuous shuffle, we need to handle shoe counting differently
     if (this.rules.deckCount === 'continuous') {
-      // Continuous shuffle - reset deck after every hand
+      // Reset deck after every hand for continuous shuffle
       const deckCount = 6;
       this.deck.reset(deckCount);
       this.cardCounter.reset(deckCount);
-    } else if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount as number)) {
-      this.deck.reset(this.rules.deckCount as number);
-      this.cardCounter.reset(this.rules.deckCount as number);
-      this.stats.totalShoes++;
+      
+      // For continuous shuffle, we count every N hands as a "shoe equivalent"
+      // Using ~75 hands per shoe as a reasonable approximation
+      this.currentShoeHands++;
+      if (this.currentShoeHands >= 75) {
+        this.stats.totalShoes++;
+        this.currentShoeHands = 0;
+      }
+    } else {
+      // Check if we need a new shoe for regular decks
+      if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount as number)) {
+        // Start a new shoe
+        this.stats.totalShoes++;
+        this.deck.reset(this.rules.deckCount as number);
+        this.cardCounter.reset(this.rules.deckCount as number);
+      }
     }
 
     // Record true count at the beginning of the round
