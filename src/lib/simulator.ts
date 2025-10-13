@@ -2,6 +2,7 @@ import { BlackjackRules, Hand, Card, GameResult, SimulationStats } from './types
 import { Deck, HandCalculator } from './blackjack-engine';
 import { PlayerLogic } from './player-logic';
 import { DealerLogic } from './dealer-logic';
+import { StrategyManager } from './strategy-loader';
 
 export class BlackjackGame {
   private deck: Deck;
@@ -9,6 +10,7 @@ export class BlackjackGame {
   private stats: SimulationStats;
   private playerLogic: PlayerLogic;
   private dealerLogic: DealerLogic;
+  private initialized: boolean = false;
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
@@ -17,6 +19,16 @@ export class BlackjackGame {
     this.stats = this.initializeStats();
     this.playerLogic = new PlayerLogic(rules, this.stats);
     this.dealerLogic = new DealerLogic(rules);
+  }
+
+  /**
+   * Initialize strategy loading
+   */
+  initialize(): void {
+    if (this.initialized) return;
+    
+    this.playerLogic.initialize();
+    this.initialized = true;
   }
 
   private initializeStats(): SimulationStats {
@@ -194,6 +206,9 @@ export async function runSimulation(
   onProgress?: (progress: number, stats: SimulationStats) => void
 ): Promise<SimulationStats> {
   const game = new BlackjackGame(rules);
+  
+  // Initialize strategy loading
+  game.initialize();
   
   for (let shoe = 0; shoe < targetShoes; shoe++) {
     // Play hands until shoe needs to be replaced

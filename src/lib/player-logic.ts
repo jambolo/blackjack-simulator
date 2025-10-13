@@ -1,5 +1,6 @@
 import { Hand, Card, BlackjackRules } from './types';
-import { HandCalculator, BasicStrategy, Deck } from './blackjack-engine';
+import { HandCalculator, Deck } from './blackjack-engine';
+import { OptimizedBasicStrategy, StrategyManager } from './strategy-loader';
 
 export class PlayerLogic {
   private rules: BlackjackRules;
@@ -8,10 +9,41 @@ export class PlayerLogic {
     doubles: number;
     splits: number;
   };
+  private strategy: OptimizedBasicStrategy | null = null;
 
   constructor(rules: BlackjackRules, stats: { surrenders: number; doubles: number; splits: number }) {
     this.rules = rules;
     this.stats = stats;
+    this.initializeStrategy();
+  }
+
+  /**
+   * Initialize the strategy for this ruleset (public method)
+   */
+  initialize(): void {
+    this.initializeStrategy();
+  }
+
+  /**
+   * Initialize the strategy for this ruleset
+   */
+  private initializeStrategy(): void {
+    try {
+      this.strategy = StrategyManager.getStrategy(this.rules);
+    } catch (error) {
+      console.warn('Failed to load optimized strategy, using fallback:', error);
+      this.strategy = null;
+    }
+  }
+
+  /**
+   * Ensure strategy is loaded before use
+   */
+  private ensureStrategy(): OptimizedBasicStrategy | null {
+    if (!this.strategy) {
+      this.initializeStrategy();
+    }
+    return this.strategy;
   }
 
   /**
@@ -30,6 +62,7 @@ export class PlayerLogic {
     canSplit: boolean = true, 
     splitCount: number = 0
   ): Hand[] {
+    const strategy = this.ensureStrategy();
     const hands: Hand[] = [playerHand];
     let currentHandIndex = 0;
 
@@ -43,7 +76,7 @@ export class PlayerLogic {
       }
 
       // Check for surrender (only on first two cards, first hand)
-      if (this.shouldAttemptSurrender(currentHand, currentHandIndex, dealerUpCard)) {
+      if (this.shouldAttemptSurrender(currentHand, currentHandIndex, dealerUpCard, strategy)) {
         currentHand.surrendered = true;
         this.stats.surrenders++;
         currentHandIndex++;
@@ -51,7 +84,7 @@ export class PlayerLogic {
       }
 
       // Check for split
-      if (this.shouldAttemptSplit(currentHand, canSplit, splitCount, dealerUpCard)) {
+      if (this.shouldAttemptSplit(currentHand, canSplit, splitCount, dealerUpCard, strategy)) {
         const newHand = this.performSplit(currentHand, deck, hands);
         if (newHand) {
           splitCount++;
@@ -66,7 +99,7 @@ export class PlayerLogic {
       }
 
       // Determine action for current hand
-      const action = this.getPlayerAction(currentHand, dealerUpCard, splitCount);
+      const action = this.getPlayerAction(currentHand, dealerUpCard, splitCount, strategy);
       
       if (action === 'double') {
         this.performDouble(currentHand, deck);
@@ -91,19 +124,37 @@ export class PlayerLogic {
   /**
    * Checks if surrender should be attempted
    */
-  private shouldAttemptSurrender(hand: Hand, handIndex: number, dealerUpCard: number): boolean {
-    return (
-      hand.cards.length === 2 && 
-      handIndex === 0 && 
-      this.rules.lateSurrender &&
-      BasicStrategy.shouldSurrender(hand.total, hand.soft, dealerUpCard)
-    );
+  private shouldAttemptSurrender(
+    hand: Hand, 
+    handIndex: number, 
+    dealerUpCard: number, 
+    strategy: OptimizedBasicStrategy | null
+  ): boolean {
+    if (hand.cards.length !== 2 || handIndex !== 0 || !this.rules.lateSurrender) {
+      return false;
+    }
+
+    if (strategy) {
+      return strategy.shouldSurrender(hand.total, hand.soft, dealerUpCard);
+    } else {
+      // Fallback to basic surrender logic
+      if (hand.soft) return false;
+      if (hand.total === 16 && (dealerUpCard === 9 || dealerUpCard === 10 || dealerUpCard === 11)) return true;
+      if (hand.total === 15 && dealerUpCard === 10) return true;
+      return false;
+    }
   }
 
   /**
    * Checks if split should be attempted
    */
-  private shouldAttemptSplit(hand: Hand, canSplit: boolean, splitCount: number, dealerUpCard: number): boolean {
+  private shouldAttemptSplit(
+    hand: Hand, 
+    canSplit: boolean, 
+    splitCount: number, 
+    dealerUpCard: number, 
+    strategy: OptimizedBasicStrategy | null
+  ): boolean {
     if (hand.cards.length !== 2 || !canSplit || splitCount >= 3) {
       return false;
     }
@@ -118,7 +169,24 @@ export class PlayerLogic {
       return false;
     }
 
-    return BasicStrategy.shouldSplitPair(hand.cards[0].rank, dealerUpCard);
+    if (strategy) {
+      return strategy.shouldSplitPair(hand.cards[0].rank, dealerUpCard);
+    } else {
+      // Fallback to basic split logic
+      const pairStrategy: Record<string, number[]> = {
+        'A': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        '8': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        '9': [2, 3, 4, 5, 6, 8, 9],
+        '7': [2, 3, 4, 5, 6, 7],
+        '6': [2, 3, 4, 5, 6],
+        '3': [2, 3, 4, 5, 6, 7],
+        '2': [2, 3, 4, 5, 6, 7],
+        '4': [],
+        '5': [],
+        '10': [],
+      };
+      return pairStrategy[hand.cards[0].rank]?.includes(dealerUpCard) || false;
+    }
   }
 
   /**
@@ -145,16 +213,94 @@ export class PlayerLogic {
   /**
    * Gets the appropriate action for the current hand
    */
-  private getPlayerAction(hand: Hand, dealerUpCard: number, splitCount: number): 'hit' | 'stand' | 'double' {
+  private getPlayerAction(
+    hand: Hand, 
+    dealerUpCard: number, 
+    splitCount: number, 
+    strategy: OptimizedBasicStrategy | null
+  ): 'hit' | 'stand' | 'double' {
     const canDouble = hand.cards.length === 2 && (!splitCount || this.rules.doubleAfterSplit);
-    const action = BasicStrategy.shouldHit(hand.total, hand.soft, dealerUpCard, canDouble);
+    
+    if (strategy) {
+      const action = strategy.shouldHit(hand.total, hand.soft, dealerUpCard, canDouble);
+      return action as 'hit' | 'stand' | 'double';
+    } else {
+      // Fallback to basic strategy logic
+      if (hand.soft) {
+        return this.getSoftStrategyFallback(hand.total, dealerUpCard, canDouble);
+      } else {
+        return this.getHardStrategyFallback(hand.total, dealerUpCard, canDouble);
+      }
+    }
+  }
 
-    // If we want to double but can't, hit instead
-    if (action === 'double' && !canDouble) {
+  /**
+   * Fallback hard strategy for when optimized strategy fails to load
+   */
+  private getHardStrategyFallback(total: number, dealerUp: number, canDouble: boolean): 'hit' | 'stand' | 'double' {
+    if (total >= 17) return 'stand';
+    if (total <= 8) return 'hit';
+    
+    if (total === 9) {
+      if (canDouble && dealerUp >= 3 && dealerUp <= 6) return 'double';
       return 'hit';
     }
+    
+    if (total === 10) {
+      if (canDouble && dealerUp <= 9) return 'double';
+      return 'hit';
+    }
+    
+    if (total === 11) {
+      if (canDouble) return 'double';
+      return 'hit';
+    }
+    
+    if (total === 12) {
+      if (dealerUp >= 4 && dealerUp <= 6) return 'stand';
+      return 'hit';
+    }
+    
+    if (total >= 13 && total <= 16) {
+      if (dealerUp <= 6) return 'stand';
+      return 'hit';
+    }
+    
+    return 'hit';
+  }
 
-    return action as 'hit' | 'stand' | 'double';
+  /**
+   * Fallback soft strategy for when optimized strategy fails to load
+   */
+  private getSoftStrategyFallback(total: number, dealerUp: number, canDouble: boolean): 'hit' | 'stand' | 'double' {
+    if (total >= 19) return 'stand';
+    if (total <= 13) return 'hit';
+    
+    if (total === 18) {
+      if (dealerUp <= 6) {
+        if (canDouble && dealerUp >= 3) return 'double';
+        return 'stand';
+      }
+      if (dealerUp === 7 || dealerUp === 8) return 'stand';
+      return 'hit';
+    }
+    
+    if (total === 17) {
+      if (canDouble && dealerUp >= 3 && dealerUp <= 6) return 'double';
+      return 'hit';
+    }
+    
+    if (total >= 15 && total <= 16) {
+      if (canDouble && dealerUp >= 4 && dealerUp <= 6) return 'double';
+      return 'hit';
+    }
+    
+    if (total >= 13 && total <= 14) {
+      if (canDouble && dealerUp >= 5 && dealerUp <= 6) return 'double';
+      return 'hit';
+    }
+    
+    return 'hit';
   }
 
   /**

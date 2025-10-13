@@ -100,8 +100,11 @@ export class HandCalculator {
   }
 }
 
+// Legacy BasicStrategy class - now deprecated, use OptimizedBasicStrategy from strategy-loader.ts
 export class BasicStrategy {
+  // Keep for backward compatibility, but these will delegate to the new system
   static shouldHit(playerTotal: number, playerSoft: boolean, dealerUpCard: number, canDouble: boolean = false): 'hit' | 'stand' | 'double' | 'split' {
+    // Fallback to hardcoded strategy if new system fails
     if (playerSoft) {
       return this.getSoftStrategy(playerTotal, dealerUpCard, canDouble);
     } else {
@@ -110,7 +113,7 @@ export class BasicStrategy {
   }
 
   private static getHardStrategy(total: number, dealerUp: number, canDouble: boolean): 'hit' | 'stand' | 'double' {
-    // Hard totals basic strategy
+    // Hard totals basic strategy (fallback implementation)
     if (total >= 17) return 'stand';
     if (total <= 8) return 'hit';
     
@@ -143,7 +146,7 @@ export class BasicStrategy {
   }
 
   private static getSoftStrategy(total: number, dealerUp: number, canDouble: boolean): 'hit' | 'stand' | 'double' {
-    // Soft totals basic strategy
+    // Soft totals basic strategy (fallback implementation)
     if (total >= 19) return 'stand';
     if (total <= 13) return 'hit';
     
@@ -194,7 +197,7 @@ export class BasicStrategy {
   static shouldSurrender(playerTotal: number, playerSoft: boolean, dealerUpCard: number): boolean {
     if (playerSoft) return false; // Never surrender soft hands
     
-    // Late surrender strategy
+    // Late surrender strategy (fallback implementation)
     if (playerTotal === 16 && (dealerUpCard === 9 || dealerUpCard === 10 || dealerUpCard === 11)) return true;
     if (playerTotal === 15 && dealerUpCard === 10) return true;
     

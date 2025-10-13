@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { RuleConfiguration } from "@/components/RuleConfiguration";
 import { SimulationProgress } from "@/components/SimulationProgress";
 import { SimulationResults } from "@/components/SimulationResults";
+import { StrategyStatus } from "@/components/StrategyStatus";
 import { BlackjackRules, SimulationStats, DEFAULT_RULES } from "@/lib/types";
 import { runSimulation } from "@/lib/simulator";
 import { Play, Square } from "@phosphor-icons/react";
@@ -87,7 +88,14 @@ function App() {
         </div>
 
         {/* Configuration */}
-        <RuleConfiguration rules={rules || DEFAULT_RULES} onRulesChange={setRules} />
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <RuleConfiguration rules={rules || DEFAULT_RULES} onRulesChange={setRules} />
+          </div>
+          <div>
+            <StrategyStatus />
+          </div>
+        </div>
 
         {/* Control Panel */}
         <Card className="p-6">
