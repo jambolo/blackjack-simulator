@@ -158,7 +158,6 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
             <p>• Split up to 4 hands</p>
             <p>• Double on any first two cards</p>
             <p>• Blackjack pays 3:2</p>
-            <p>• Basic strategy play</p>
           </div>
         </div>
       </div>
