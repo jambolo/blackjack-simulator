@@ -269,12 +269,13 @@ export async function runSimulation(
   
   for (let shoe = 0; shoe < targetShoes; shoe++) {
     // Play hands until shoe needs to be replaced
+    const startingShoes = game.getStats().totalShoes;
     while (true) {
       game.playHand();
       
       // Check if we need a new shoe
       const stats = game.getStats();
-      if (rules.deckCount === 'continuous' || stats.totalShoes > shoe) {
+      if (rules.deckCount === 'continuous' || stats.totalShoes > startingShoes) {
         break;
       }
     }

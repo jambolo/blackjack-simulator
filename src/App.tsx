@@ -100,9 +100,6 @@ function App() {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Analyze different blackjack rule variations using basic strategy.
           </p>
-          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            This simulation uses mathematically optimal basic strategy for all decisions.
-          </p>
         </div>
 
         {/* Configuration */}
