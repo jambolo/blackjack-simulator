@@ -9,8 +9,14 @@ import { SimulationResults } from "@/components/SimulationResults";
 import { StrategyStatus } from "@/components/StrategyStatus";
 import { BlackjackRules, SimulationStats, DEFAULT_RULES } from "@/lib/types";
 import { runSimulation } from "@/lib/simulator";
+import { debugStrategyLoading } from "@/lib/strategy-registry";
 import { Play, Square } from "@phosphor-icons/react";
 import { toast } from "sonner";
+
+// Debug strategy loading on app start (development only)
+if (import.meta.env.DEV) {
+  debugStrategyLoading();
+}
 
 function App() {
   const [rules, setRules] = useKV<BlackjackRules>('blackjack-rules', DEFAULT_RULES);
@@ -93,7 +99,7 @@ function App() {
             <RuleConfiguration rules={rules || DEFAULT_RULES} onRulesChange={setRules} />
           </div>
           <div>
-            <StrategyStatus />
+            <StrategyStatus rules={rules || DEFAULT_RULES} />
           </div>
         </div>
 

@@ -2,10 +2,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { StrategyManager } from "@/lib/strategy-loader";
-import { getAvailableStrategies } from "@/lib/strategy-registry";
-import { DEFAULT_RULES } from "@/lib/types";
+import { getAvailableStrategies, getStrategyData } from "@/lib/strategy-registry";
+import { DEFAULT_RULES, BlackjackRules } from "@/lib/types";
 
-export function StrategyStatus() {
+interface StrategyStatusProps {
+  rules?: BlackjackRules;
+}
+
+export function StrategyStatus({ rules = DEFAULT_RULES }: StrategyStatusProps) {
   const [strategyLoaded, setStrategyLoaded] = useState(false);
   const [strategyName, setStrategyName] = useState("");
   const [availableStrategies, setAvailableStrategies] = useState<string[]>([]);
@@ -13,17 +17,20 @@ export function StrategyStatus() {
 
   useEffect(() => {
     try {
-      // Load default strategy to test the system
-      const strategy = StrategyManager.getStrategy(DEFAULT_RULES);
+      // Load strategy for current rules
+      const strategy = StrategyManager.getStrategy(rules);
+      const strategyData = getStrategyData(rules);
       setStrategyLoaded(true);
-      setStrategyName("Optimized Basic Strategy (loaded)");
+      setStrategyName(strategyData.name);
       setAvailableStrategies(getAvailableStrategies());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       setStrategyLoaded(false);
     }
-  }, []);
+  }, [rules]);
+
+  const rulesSummary = `${rules.dealerHitsSoft17 ? 'H17' : 'S17'}, DAS, ${rules.lateSurrender ? 'LS' : 'NS'}`;
 
   return (
     <Card className="p-4">
@@ -38,6 +45,7 @@ export function StrategyStatus() {
         {strategyLoaded && (
           <div className="space-y-2 text-sm text-muted-foreground">
             <p><strong>Active Strategy:</strong> {strategyName}</p>
+            <p><strong>Current Rules:</strong> {rulesSummary}</p>
             <p><strong>Available Strategies:</strong> {availableStrategies.length}</p>
             <div className="flex flex-wrap gap-1">
               {availableStrategies.map(strategy => (

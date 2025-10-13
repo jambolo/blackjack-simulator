@@ -148,7 +148,10 @@ export class OptimizedBasicStrategy {
     const dealerMap = this.strategy.hardTotals.get(total);
     if (!dealerMap) {
       // Default fallback for unusual totals
-      return total < 12 ? 'H' : (total > 16 ? 'S' : (dealerUpCard <= 6 ? 'S' : 'H'));
+      if (total <= 8) return 'H';              // Always hit low totals
+      if (total >= 17) return 'S';             // Always stand on 17+
+      if (total >= 13 && dealerUpCard <= 6) return 'S';  // Stand on stiff vs weak dealer
+      return 'H';                              // Hit otherwise
     }
     
     return dealerMap.get(dealerUpCard) || 'H';
@@ -160,8 +163,9 @@ export class OptimizedBasicStrategy {
   private getSoftAction(total: number, dealerUpCard: number): StrategyAction {
     const dealerMap = this.strategy.softTotals.get(total);
     if (!dealerMap) {
-      // Default fallback
-      return total < 18 ? 'H' : 'S';
+      // Default fallback for unusual soft totals
+      if (total <= 17) return 'H';    // Hit soft 17 and below
+      return 'S';                     // Stand on soft 18+
     }
     
     return dealerMap.get(dealerUpCard) || 'H';
@@ -251,9 +255,9 @@ export class StrategyManager {
    * Generate a cache key based on rules
    */
   private static getCacheKey(rules: BlackjackRules): string {
-    const deckCount = rules.deckCount === 'continuous' ? 'continuous' : rules.deckCount.toString();
     const dealerRule = rules.dealerHitsSoft17 ? 'h17' : 's17';
-    return `${deckCount}-${dealerRule}`;
+    const surrenderRule = rules.lateSurrender ? 'ls' : 'ns';
+    return `${dealerRule}-das-${surrenderRule}`;
   }
   
   /**
