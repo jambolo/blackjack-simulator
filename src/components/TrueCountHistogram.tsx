@@ -90,11 +90,11 @@ export function TrueCountHistogram({ trueCountFrequency }: TrueCountHistogramPro
               />
               <YAxis 
                 tick={{ fontSize: 12 }}
-                label={{ value: 'Frequency', angle: -90, position: 'insideLeft' }}
+                label={{ value: 'Percent of Total (%)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar 
-                dataKey="frequency" 
+                dataKey="percentage" 
                 fill="hsl(var(--primary))"
                 radius={[2, 2, 0, 0]}
               />
