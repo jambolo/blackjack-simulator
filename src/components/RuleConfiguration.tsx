@@ -159,7 +159,6 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
           <h3 className="font-medium text-primary">Rule Summary</h3>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>• Dealer checks for blackjack (American style)</p>
-            <p>• No insurance or even money</p>
             <p>• Split up to 4 hands</p>
             <p>• Double on any first two cards</p>
             <p>• Blackjack pays 3:2</p>
