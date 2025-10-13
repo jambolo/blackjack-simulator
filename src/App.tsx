@@ -120,7 +120,8 @@ function App() {
             <Button
               onClick={handleStartSimulation}
               size="lg"
-              className={`min-w-32 ${isSimulating ? 'bg-destructive hover:bg-destructive/90' : ''}`}
+              variant={isSimulating ? "destructive" : "default"}
+              className="min-w-32 transition-all active:scale-95"
             >
               {isSimulating ? (
                 <>
