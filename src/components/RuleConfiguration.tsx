@@ -91,24 +91,20 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
         </div>
 
         <div className="space-y-4">
-          <h3 className="font-medium text-primary">Dealer Rules</h3>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="dealer-soft-17" className="text-sm">
-              Dealer Hits Soft 17
-            </Label>
-            <Switch
-              id="dealer-soft-17"
-              checked={rules.dealerHitsSoft17}
-              onCheckedChange={(checked) => updateRule('dealerHitsSoft17', checked)}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="font-medium text-primary">Player Options</h3>
+          <h3 className="font-medium text-primary">Player & Dealer Rules</h3>
           
           <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="dealer-soft-17" className="text-sm">
+                Dealer Hits Soft 17
+              </Label>
+              <Switch
+                id="dealer-soft-17"
+                checked={rules.dealerHitsSoft17}
+                onCheckedChange={(checked) => updateRule('dealerHitsSoft17', checked)}
+              />
+            </div>
+
             <div className="flex items-center justify-between">
               <Label htmlFor="double-after-split" className="text-sm">
                 Double After Split (DAS)
@@ -155,7 +151,7 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 md:col-span-2">
           <h3 className="font-medium text-primary">Rule Summary</h3>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>• Dealer checks for blackjack (American style)</p>
