@@ -1,16 +1,22 @@
 import { BlackjackRules, Hand, Card, GameResult, SimulationStats } from './types';
-import { Deck, HandCalculator, BasicStrategy } from './blackjack-engine';
+import { Deck, HandCalculator } from './blackjack-engine';
+import { PlayerLogic } from './player-logic';
+import { DealerLogic } from './dealer-logic';
 
 export class BlackjackGame {
   private deck: Deck;
   private rules: BlackjackRules;
   private stats: SimulationStats;
+  private playerLogic: PlayerLogic;
+  private dealerLogic: DealerLogic;
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
     const deckCount = rules.deckCount === 'continuous' ? 6 : rules.deckCount;
     this.deck = new Deck(deckCount);
     this.stats = this.initializeStats();
+    this.playerLogic = new PlayerLogic(rules, this.stats);
+    this.dealerLogic = new DealerLogic(rules);
   }
 
   private initializeStats(): SimulationStats {
@@ -45,116 +51,15 @@ export class BlackjackGame {
   }
 
   private dealerShouldHit(dealerHand: Hand): boolean {
-    if (dealerHand.total < 17) return true;
-    if (dealerHand.total === 17 && dealerHand.soft && this.rules.dealerHitsSoft17) return true;
-    return false;
+    return this.dealerLogic.shouldDealerHit(dealerHand);
   }
 
   private playDealerHand(dealerHand: Hand): Hand {
-    while (this.dealerShouldHit(dealerHand)) {
-      const card = this.deck.deal();
-      dealerHand.cards.push(card);
-      const { total, soft } = HandCalculator.calculateHand(dealerHand.cards);
-      dealerHand.total = total;
-      dealerHand.soft = soft;
-    }
-    return dealerHand;
+    return this.dealerLogic.playDealerHand(dealerHand, this.deck);
   }
 
   private playPlayerHand(playerHand: Hand, dealerUpCard: number, canSplit: boolean = true, splitCount: number = 0): Hand[] {
-    const hands: Hand[] = [playerHand];
-    let currentHandIndex = 0;
-
-    while (currentHandIndex < hands.length) {
-      const currentHand = hands[currentHandIndex];
-      
-      // Skip if already busted, surrendered, or blackjack
-      if (currentHand.total > 21 || currentHand.surrendered || currentHand.isBlackjack) {
-        currentHandIndex++;
-        continue;
-      }
-
-      // Check for surrender (only on first two cards, first hand)
-      if (currentHand.cards.length === 2 && currentHandIndex === 0 && this.rules.lateSurrender) {
-        if (BasicStrategy.shouldSurrender(currentHand.total, currentHand.soft, dealerUpCard)) {
-          currentHand.surrendered = true;
-          this.stats.surrenders++;
-          currentHandIndex++;
-          continue;
-        }
-      }
-
-      // Check for split
-      if (currentHand.cards.length === 2 && canSplit && splitCount < 3) {
-        const canSplitPair = HandCalculator.canSplit(currentHand.cards);
-        const shouldSplit = canSplitPair && BasicStrategy.shouldSplitPair(currentHand.cards[0].rank, dealerUpCard);
-        
-        if (shouldSplit) {
-          // Handle resplit aces rule
-          if (currentHand.cards[0].rank === 'A' && splitCount > 0 && !this.rules.resplitAces) {
-            // Cannot resplit aces
-          } else {
-            // Perform split
-            const secondCard = currentHand.cards.pop()!;
-            const newHand = this.createHand([secondCard], currentHand.bet);
-            
-            // Deal new cards to both hands
-            currentHand.cards.push(this.deck.deal());
-            newHand.cards.push(this.deck.deal());
-            
-            // Recalculate totals
-            const { total: total1, soft: soft1 } = HandCalculator.calculateHand(currentHand.cards);
-            currentHand.total = total1;
-            currentHand.soft = soft1;
-            currentHand.isBlackjack = HandCalculator.isBlackjack(currentHand.cards);
-            
-            const { total: total2, soft: soft2 } = HandCalculator.calculateHand(newHand.cards);
-            newHand.total = total2;
-            newHand.soft = soft2;
-            newHand.isBlackjack = HandCalculator.isBlackjack(newHand.cards);
-            
-            hands.push(newHand);
-            this.stats.splits++;
-            splitCount++;
-            
-            // Check if split aces and can't hit after split
-            if (currentHand.cards[0].rank === 'A' && !this.rules.hitAfterSplitAces) {
-              currentHandIndex++;
-              continue;
-            }
-          }
-        }
-      }
-
-      // Determine action
-      const canDouble = currentHand.cards.length === 2 && (!splitCount || this.rules.doubleAfterSplit);
-      const action = BasicStrategy.shouldHit(currentHand.total, currentHand.soft, dealerUpCard, canDouble);
-
-      if (action === 'double' && canDouble) {
-        currentHand.doubled = true;
-        currentHand.bet *= 2;
-        currentHand.cards.push(this.deck.deal());
-        const { total, soft } = HandCalculator.calculateHand(currentHand.cards);
-        currentHand.total = total;
-        currentHand.soft = soft;
-        this.stats.doubles++;
-        currentHandIndex++;
-      } else if (action === 'hit' || (action === 'double' && !canDouble)) {
-        currentHand.cards.push(this.deck.deal());
-        const { total, soft } = HandCalculator.calculateHand(currentHand.cards);
-        currentHand.total = total;
-        currentHand.soft = soft;
-        
-        if (currentHand.total > 21) {
-          currentHandIndex++;
-        }
-      } else {
-        // Stand
-        currentHandIndex++;
-      }
-    }
-
-    return hands;
+    return this.playerLogic.playPlayerHands(playerHand, dealerUpCard, this.deck, canSplit, splitCount);
   }
 
   private calculateResults(playerHands: Hand[], dealerHand: Hand): GameResult {
@@ -221,18 +126,17 @@ export class BlackjackGame {
 
     // Deal initial cards
     const playerHand = this.createHand([this.deck.deal(), this.deck.deal()]);
-    const dealerHand = this.createHand([this.deck.deal(), this.deck.deal()]);
+    const dealerHand = this.dealerLogic.createHand([this.deck.deal(), this.deck.deal()]);
 
     // Check for dealer blackjack (American style - peek)
-    if (dealerHand.isBlackjack) {
-      dealerHand.isBlackjack = true;
+    if (this.dealerLogic.hasBlackjack(dealerHand)) {
       const result = this.calculateResults([playerHand], dealerHand);
       this.updateStats(result);
       return result;
     }
 
     // Play player hands
-    const dealerUpCard = dealerHand.cards[0].value === 11 ? 11 : dealerHand.cards[0].value;
+    const dealerUpCard = this.dealerLogic.getUpCardValue(dealerHand);
     const finalPlayerHands = this.playPlayerHand(playerHand, dealerUpCard);
 
     // Play dealer hand only if player has non-busted hands
