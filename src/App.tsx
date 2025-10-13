@@ -90,7 +90,7 @@ function App() {
             Blackjack Simulation Tool
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Analyze different blackjack rule variations using optimal basic strategy. 
+            Analyze different blackjack rule variations using basic strategy. 
             Configure and simulate thousands to millions of shoes to understand house edge and expected outcomes.
           </p>
         </div>
