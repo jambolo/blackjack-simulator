@@ -51,6 +51,15 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
   const trueCountValues = chartData.map(d => d.trueCount);
   const minCount = trueCountValues.length > 0 ? Math.min(...trueCountValues) : 0;
   const maxCount = trueCountValues.length > 0 ? Math.max(...trueCountValues) : 0;
+  
+  // Calculate win rate range for Y-axis
+  const winRateValues = chartData.map(d => d.winRate);
+  const minWinRate = winRateValues.length > 0 ? Math.min(...winRateValues) : 45;
+  const maxWinRate = winRateValues.length > 0 ? Math.max(...winRateValues) : 55;
+  const winRateRange = maxWinRate - minWinRate;
+  const padding = Math.max(1, winRateRange * 0.1); // 10% padding, minimum 1%
+  const yAxisMin = Math.max(0, minWinRate - padding);
+  const yAxisMax = Math.min(100, maxWinRate + padding);
 
   return (
     <Card className="p-6">
@@ -103,17 +112,10 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     label={{ value: 'Win Rate (%)', angle: -90, position: 'insideLeft' }}
-                    domain={[0, 100]}
+                    domain={[yAxisMin, yAxisMax]}
                   />
                   <Tooltip content={<WinRateTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="winRate" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                  />
-                  {/* Add a horizontal line at 50% */}
+                  {/* Reference line at 50% */}
                   <Line 
                     type="monotone" 
                     dataKey={() => 50} 
@@ -121,40 +123,16 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     strokeWidth={1}
                     strokeDasharray="5 5"
                     dot={false}
+                    connectNulls={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="winRate" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Sample Size Chart */}
-          <div>
-            <h4 className="text-md font-medium mb-2">Sample Size by True Count</h4>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis 
-                    dataKey="trueCount" 
-                    type="number"
-                    scale="linear"
-                    domain={[minCount - 1, maxCount + 1]}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    label={{ value: 'Number of Hands', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [value.toLocaleString(), 'Hands']}
-                    labelFormatter={(value) => `True Count: ${value}`}
-                  />
-                  <Bar 
-                    dataKey="hands" 
-                    fill="hsl(var(--muted-foreground))"
-                    radius={[2, 2, 0, 0]}
-                  />
-                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
