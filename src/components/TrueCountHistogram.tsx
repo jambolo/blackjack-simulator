@@ -1,1 +1,0 @@
-// TrueCountHistogram component removed per user request
