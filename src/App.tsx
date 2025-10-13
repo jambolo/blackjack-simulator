@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/sonner";
 import { RuleConfiguration } from "@/components/RuleConfiguration";
+import { SimulationConfiguration } from "@/components/SimulationConfiguration";
 import { SimulationProgress } from "@/components/SimulationProgress";
 import { SimulationResults } from "@/components/SimulationResults";
 import { StrategyStatus } from "@/components/StrategyStatus";
@@ -99,9 +100,7 @@ function App() {
           <div className="lg:col-span-2">
             <RuleConfiguration 
               rules={rules || DEFAULT_RULES} 
-              simulationConfig={simulationConfig || DEFAULT_SIMULATION_CONFIG}
               onRulesChange={setRules}
-              onSimulationConfigChange={setSimulationConfig}
             />
           </div>
           <div>
@@ -111,7 +110,7 @@ function App() {
 
         {/* Control Panel */}
         <Card className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold">Simulation Control</h3>
               <p className="text-sm text-muted-foreground">
@@ -135,6 +134,14 @@ function App() {
                 </>
               )}
             </Button>
+          </div>
+          
+          <div className="border-t pt-6">
+            <h4 className="text-md font-medium mb-4">Simulation Configuration</h4>
+            <SimulationConfiguration
+              simulationConfig={simulationConfig || DEFAULT_SIMULATION_CONFIG}
+              onSimulationConfigChange={setSimulationConfig}
+            />
           </div>
         </Card>
 

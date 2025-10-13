@@ -2,18 +2,15 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { BlackjackRules, SimulationConfig, VALID_PENETRATIONS, DEFAULT_RULES, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
+import { BlackjackRules, VALID_PENETRATIONS, DEFAULT_RULES } from "@/lib/types";
 import { Gear } from "@phosphor-icons/react";
 
 interface RuleConfigurationProps {
   rules: BlackjackRules;
-  simulationConfig: SimulationConfig;
   onRulesChange: (rules: BlackjackRules) => void;
-  onSimulationConfigChange: (config: SimulationConfig) => void;
 }
 
-export function RuleConfiguration({ rules, simulationConfig, onRulesChange, onSimulationConfigChange }: RuleConfigurationProps) {
+export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationProps) {
   const updateRule = <K extends keyof BlackjackRules>(key: K, value: BlackjackRules[K]) => {
     const newRules = { ...rules, [key]: value };
     
@@ -28,13 +25,8 @@ export function RuleConfiguration({ rules, simulationConfig, onRulesChange, onSi
     onRulesChange(newRules);
   };
 
-  const updateSimulationConfig = <K extends keyof SimulationConfig>(key: K, value: SimulationConfig[K]) => {
-    onSimulationConfigChange({ ...simulationConfig, [key]: value });
-  };
-
   const resetToDefaults = () => {
     onRulesChange(DEFAULT_RULES);
-    onSimulationConfigChange(DEFAULT_SIMULATION_CONFIG);
   };
 
   const validPenetrations = VALID_PENETRATIONS[rules.deckCount];
@@ -55,31 +47,6 @@ export function RuleConfiguration({ rules, simulationConfig, onRulesChange, onSi
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="font-medium text-primary">Simulation Configuration</h3>
-          
-          <div className="space-y-2">
-            <Label htmlFor="shoe-count">Number of Shoes to Simulate</Label>
-            <Input
-              id="shoe-count"
-              type="number"
-              min="10000"
-              max="100000000"
-              step="10000"
-              value={simulationConfig.shoeCount}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || DEFAULT_SIMULATION_CONFIG.shoeCount;
-                const clampedValue = Math.max(10000, Math.min(100000000, value));
-                updateSimulationConfig('shoeCount', clampedValue);
-              }}
-              className="font-mono"
-            />
-            <p className="text-xs text-muted-foreground">
-              Range: 10,000 to 100,000,000 shoes. More shoes provide more accurate results but take longer to run.
-            </p>
-          </div>
-        </div>
-
         <div className="space-y-4">
           <h3 className="font-medium text-primary">Deck Configuration</h3>
           
