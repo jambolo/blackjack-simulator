@@ -165,12 +165,13 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     dataKey="winRateDisplay" 
                     stroke="hsl(var(--primary))" 
                     strokeWidth={2}
-                    dot={({ payload }) => {
+                    dot={(props: any) => {
+                      const { cx, cy, payload } = props;
                       const isOutOfRange = payload?.isOutOfRange;
                       return (
                         <circle
-                          cx={payload?.cx}
-                          cy={payload?.cy}
+                          cx={cx}
+                          cy={cy}
                           r={4}
                           fill={isOutOfRange ? "hsl(var(--accent))" : "hsl(var(--primary))"}
                           stroke={isOutOfRange ? "hsl(var(--accent))" : "hsl(var(--primary))"}
