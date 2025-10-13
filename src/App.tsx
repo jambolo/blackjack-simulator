@@ -121,7 +121,7 @@ function App() {
             <div>
               <h3 className="text-lg font-semibold">Simulation Control</h3>
               <p className="text-sm text-muted-foreground">
-                Run exactly {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} complete shoes using optimal basic strategy
+                Run {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} complete shoes using basic strategy
               </p>
               <p className="text-xs text-accent-foreground mt-1">
                 ⚡ Multi-threaded simulation using {navigator.hardwareConcurrency || 4} CPU cores
