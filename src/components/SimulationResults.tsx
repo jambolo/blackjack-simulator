@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SimulationStats } from "@/lib/types";
-import { TrueCountHistogram } from "@/components/TrueCountHistogram";
 import { TrueCountWinRates } from "@/components/TrueCountWinRates";
 import { TrendUp, TrendDown, Minus, Trophy } from "@phosphor-icons/react";
 
@@ -217,7 +216,6 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
 
         <TabsContent value="counting" className="space-y-6">
           <TrueCountWinRates trueCountStats={stats.trueCountStats || {}} />
-          <TrueCountHistogram trueCountFrequency={stats.trueCountFrequency || {}} />
         </TabsContent>
       </Tabs>
     </Card>
