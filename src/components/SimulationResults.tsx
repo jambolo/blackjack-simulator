@@ -113,56 +113,24 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="font-medium">Game Statistics</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Hands Played:</span>
-                  <span className="font-medium">{formatNumber(stats.totalHands)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shoes Completed:</span>
-                  <span className="font-medium">{formatNumber(stats.totalShoes)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Avg Hands per Shoe:</span>
-                  <span className="font-medium">{avgHandsPerShoe.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Standard Deviation (Winnings):</span>
-                  <span className="font-medium">{stats.standardDeviation.toFixed(2)}</span>
-                </div>
+          <div className="space-y-4">
+            <h3 className="font-medium">Game Statistics</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Hands Played:</span>
+                <span className="font-medium">{formatNumber(stats.totalHands)}</span>
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-medium">Key Insights</h3>
-              <div className="space-y-2 text-sm">
-                {stats.houseEdge < 0.5 && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <TrendUp className="h-4 w-4" />
-                    <span>Excellent house edge - favorable rules</span>
-                  </div>
-                )}
-                {stats.houseEdge > 1.0 && (
-                  <div className="flex items-center gap-2 text-red-600">
-                    <TrendDown className="h-4 w-4" />
-                    <span>High house edge - unfavorable rules</span>
-                  </div>
-                )}
-                {blackjackRate > 4.5 && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <Trophy className="h-4 w-4" />
-                    <span>Above-average blackjack frequency</span>
-                  </div>
-                )}
-                {winRate > 47 && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <TrendUp className="h-4 w-4" />
-                    <span>Strong win rate with basic strategy</span>
-                  </div>
-                )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Shoes Completed:</span>
+                <span className="font-medium">{formatNumber(stats.totalShoes)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Avg Hands per Shoe:</span>
+                <span className="font-medium">{avgHandsPerShoe.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Standard Deviation (Winnings):</span>
+                <span className="font-medium">{stats.standardDeviation.toFixed(2)}</span>
               </div>
             </div>
           </div>
