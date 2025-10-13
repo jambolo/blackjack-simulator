@@ -35,6 +35,16 @@ export interface GameResult {
   netWin: number;
 }
 
+export interface TrueCountStats {
+  hands: number;
+  wins: number;
+  losses: number;
+  pushes: number;
+  blackjacks: number;
+  netWinnings: number;
+  winRate: number;
+}
+
 export interface SimulationStats {
   totalHands: number;
   totalShoes: number;
@@ -50,6 +60,7 @@ export interface SimulationStats {
   houseEdge: number;
   standardDeviation: number;
   trueCountFrequency: Record<number, number>;
+  trueCountStats: Record<number, TrueCountStats>;
 }
 
 export const DEFAULT_RULES: BlackjackRules = {

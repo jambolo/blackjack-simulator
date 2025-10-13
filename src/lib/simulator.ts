@@ -13,6 +13,7 @@ export class BlackjackGame {
   private dealerLogic: DealerLogic;
   private initialized: boolean = false;
   private cardCounter: HiLoCounter;
+  private currentHandTrueCount: number = 0;
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
@@ -50,6 +51,7 @@ export class BlackjackGame {
       houseEdge: 0,
       standardDeviation: 0,
       trueCountFrequency: {},
+      trueCountStats: {},
     };
   }
 
@@ -144,6 +146,8 @@ export class BlackjackGame {
 
     // Record true count at the beginning of the round
     const trueCountAtStart = this.cardCounter.getTrueCountInteger();
+    this.currentHandTrueCount = trueCountAtStart;
+    
     if (this.stats.trueCountFrequency[trueCountAtStart]) {
       this.stats.trueCountFrequency[trueCountAtStart]++;
     } else {
@@ -184,33 +188,64 @@ export class BlackjackGame {
     return result;
   }
 
+  private initializeTrueCountStats(trueCount: number): void {
+    if (!this.stats.trueCountStats[trueCount]) {
+      this.stats.trueCountStats[trueCount] = {
+        hands: 0,
+        wins: 0,
+        losses: 0,
+        pushes: 0,
+        blackjacks: 0,
+        netWinnings: 0,
+        winRate: 0,
+      };
+    }
+  }
+
   private updateStats(result: GameResult): void {
     this.stats.totalHands++;
     this.stats.netWinnings += result.netWin;
+
+    // Initialize true count stats if needed
+    this.initializeTrueCountStats(this.currentHandTrueCount);
+    const tcStats = this.stats.trueCountStats[this.currentHandTrueCount];
+    
+    // Update true count stats
+    tcStats.hands++;
+    tcStats.netWinnings += result.netWin;
 
     for (let i = 0; i < result.results.length; i++) {
       const outcome = result.results[i];
       switch (outcome) {
         case 'win':
           this.stats.wins++;
+          tcStats.wins++;
           break;
         case 'loss':
           this.stats.losses++;
+          tcStats.losses++;
           break;
         case 'push':
           this.stats.pushes++;
+          tcStats.pushes++;
           break;
         case 'blackjack':
           this.stats.blackjacks++;
           this.stats.wins++; // Blackjack counts as a win
+          tcStats.blackjacks++;
+          tcStats.wins++; // Blackjack counts as a win
           break;
       }
     }
 
-    // Update derived statistics
+    // Update overall derived statistics
     const totalDecisions = this.stats.wins + this.stats.losses; // Exclude pushes
     this.stats.winRate = totalDecisions > 0 ? (this.stats.wins / totalDecisions) * 100 : 0;
     this.stats.houseEdge = this.stats.totalHands > 0 ? -(this.stats.netWinnings / this.stats.totalHands) * 100 : 0;
+    
+    // Update true count specific statistics
+    const tcDecisions = tcStats.wins + tcStats.losses; // Exclude pushes
+    tcStats.winRate = tcDecisions > 0 ? (tcStats.wins / tcDecisions) * 100 : 0;
   }
 
   getStats(): SimulationStats {
