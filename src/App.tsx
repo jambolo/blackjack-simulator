@@ -153,15 +153,7 @@ function App() {
           <SimulationResults stats={finalStats} />
         )}
 
-        {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground space-y-2">
-          <p>
-            This simulation uses mathematically optimal basic strategy for all decisions.
-          </p>
-          <p>
-            Results are based on perfect play without card counting or deviation from basic strategy.
-          </p>
-        </div>
+
       </div>
     </div>
   );
