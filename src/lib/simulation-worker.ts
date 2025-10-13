@@ -49,34 +49,25 @@ self.onmessage = async function(e: MessageEvent<SimulationTask>) {
     let lastProgressUpdate = 0;
     const progressUpdateInterval = Math.max(1, Math.floor(targetShoes / 100)); // Update every 1% or at least every shoe
     
-    for (let shoe = 0; shoe < targetShoes; shoe++) {
-      // Play hands until shoe needs to be replaced
-      const startingShoes = game.getStats().totalShoes;
-      while (true) {
-        game.playHand();
-        
-        // Check if we need a new shoe
-        const stats = game.getStats();
-        if (rules.deckCount === 'continuous' || stats.totalShoes > startingShoes) {
-          break;
-        }
-      }
+    // Continue playing until we reach the target number of shoes
+    while (game.getStats().totalShoes < targetShoes) {
+      game.playHand();
       
       // Report progress periodically
-      if (shoe - lastProgressUpdate >= progressUpdateInterval) {
-        const progress = (shoe / targetShoes) * 100;
-        const stats = game.getStats();
+      const currentStats = game.getStats();
+      if (currentStats.totalShoes - lastProgressUpdate >= progressUpdateInterval) {
+        const progress = Math.min((currentStats.totalShoes / targetShoes) * 100, 99);
         
         const progressMessage: WorkerMessage = {
           type: 'progress',
           workerId,
           data: {
             progress,
-            partialStats: extractPartialStats(stats)
+            partialStats: extractPartialStats(currentStats)
           }
         };
         self.postMessage(progressMessage);
-        lastProgressUpdate = shoe;
+        lastProgressUpdate = currentStats.totalShoes;
       }
     }
     

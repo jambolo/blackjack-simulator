@@ -23,6 +23,9 @@ export class BlackjackGame {
     this.playerLogic = new PlayerLogic(rules, this.stats);
     this.dealerLogic = new DealerLogic(rules);
     this.cardCounter = new HiLoCounter(deckCount);
+    
+    // Count the initial shoe
+    this.stats.totalShoes = 1;
   }
 
   /**
@@ -267,23 +270,21 @@ export async function runSimulation(
   // Initialize strategy loading
   game.initialize();
   
-  for (let shoe = 0; shoe < targetShoes; shoe++) {
-    // Play hands until shoe needs to be replaced
-    const startingShoes = game.getStats().totalShoes;
-    while (true) {
-      game.playHand();
-      
-      // Check if we need a new shoe
-      const stats = game.getStats();
-      if (rules.deckCount === 'continuous' || stats.totalShoes > startingShoes) {
-        break;
-      }
-    }
+  let progressUpdateCounter = 0;
+  const progressUpdateInterval = Math.max(1, Math.floor(targetShoes / 100)); // Update progress every 1% or at least every shoe
+  
+  // Continue playing until we reach the target number of shoes
+  while (game.getStats().totalShoes < targetShoes) {
+    game.playHand();
     
-    // Report progress every 10 shoes
-    if (onProgress && shoe % 10 === 0) {
-      const progress = (shoe / targetShoes) * 100;
-      onProgress(progress, game.getStats());
+    // Report progress periodically
+    const currentStats = game.getStats();
+    if (currentStats.totalShoes - progressUpdateCounter >= progressUpdateInterval) {
+      const progress = Math.min((currentStats.totalShoes / targetShoes) * 100, 99);
+      if (onProgress) {
+        onProgress(progress, currentStats);
+      }
+      progressUpdateCounter = currentStats.totalShoes;
     }
   }
   

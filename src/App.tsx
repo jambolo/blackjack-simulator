@@ -73,7 +73,7 @@ function App() {
         setProgress(100);
         setSimulationEndTime(Date.now());
         const shoeCount = simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount;
-        toast.success(`Simulation complete! Played ${stats.totalHands.toLocaleString()} hands across ${stats.totalShoes} shoes (${shoeCount.toLocaleString()} requested).`);
+        toast.success(`Simulation complete! Played ${stats.totalHands.toLocaleString()} hands across ${stats.totalShoes.toLocaleString()} shoes (${shoeCount.toLocaleString()} requested).`);
       }
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -121,7 +121,7 @@ function App() {
             <div>
               <h3 className="text-lg font-semibold">Simulation Control</h3>
               <p className="text-sm text-muted-foreground">
-                Run {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} shoes using optimal basic strategy
+                Run exactly {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} complete shoes using optimal basic strategy
               </p>
               <p className="text-xs text-accent-foreground mt-1">
                 ⚡ Multi-threaded simulation using {navigator.hardwareConcurrency || 4} CPU cores
