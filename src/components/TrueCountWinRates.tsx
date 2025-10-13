@@ -10,8 +10,8 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
   // Ensure we have valid data
   const safeStats = trueCountStats || {};
   
-  // Convert the stats data to chart format
-  const chartData = Object.entries(safeStats)
+  // Convert the stats data to chart format and filter out-of-range values
+  const allData = Object.entries(safeStats)
     .map(([count, stats]) => ({
       trueCount: parseInt(count),
       winRate: stats.winRate,
@@ -22,35 +22,34 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
     .filter(item => item.hands >= 10) // Only show counts with significant sample sizes
     .sort((a, b) => a.trueCount - b.trueCount);
 
-  // Calculate dynamic Y-axis range based on data, clamped to [-0.2, 0.2]
-  const avgWinValues = chartData.map(d => d.avgWinPerHand);
-  const dataMin = avgWinValues.length > 0 ? Math.min(...avgWinValues) : -0.05;
-  const dataMax = avgWinValues.length > 0 ? Math.max(...avgWinValues) : 0.05;
-  
-  // Add some padding and clamp to the specified range
-  const padding = (dataMax - dataMin) * 0.1;
-  const yAxisMin = Math.max(-0.2, dataMin - padding);
-  const yAxisMax = Math.min(0.2, dataMax + padding);
+  // Filter chart data to only include values within the specified range
+  const chartData = allData.filter(item => 
+    item.avgWinPerHand >= -0.2 && 
+    item.avgWinPerHand <= 0.2 &&
+    item.trueCount >= -8 &&
+    item.trueCount <= 8
+  );
+
+  // Fixed Y-axis range
+  const yAxisMin = -0.2;
+  const yAxisMax = 0.2;
   
   // Determine if any values are outside the range
-  const hasOutOfRangeValues = avgWinValues.some(val => val < -0.2 || val > 0.2);
+  const hasOutOfRangeValues = allData.some(item => 
+    item.avgWinPerHand < -0.2 || 
+    item.avgWinPerHand > 0.2 ||
+    item.trueCount < -8 ||
+    item.trueCount > 8
+  );
 
   // Custom tooltip for average win per hand
   const AvgWinTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const isOutOfRange = data.avgWinPerHand < -0.2 || data.avgWinPerHand > 0.2;
       return (
         <div className="bg-background border border-border rounded-lg p-3 shadow-md">
           <p className="text-sm font-medium mb-2">{`True Count: ${label}`}</p>
-          <div className="flex items-center gap-2 mb-1">
-            <p className="text-sm text-primary">{`Avg Win/Hand: ${data.avgWinPerHand.toFixed(4)}`}</p>
-            {isOutOfRange && (
-              <span className="text-xs bg-accent/20 text-accent px-1 rounded">
-                Out of range
-              </span>
-            )}
-          </div>
+          <p className="text-sm text-primary">{`Avg Win/Hand: ${data.avgWinPerHand.toFixed(4)}`}</p>
           <p className="text-sm text-muted-foreground">{`Hands: ${data.hands.toLocaleString()}`}</p>
           <p className="text-sm text-accent">{`Win Rate: ${data.winRate.toFixed(2)}%`}</p>
         </div>
@@ -68,13 +67,17 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
     item.avgWinPerHand < worst.avgWinPerHand ? item : worst
   ) : { trueCount: 0, avgWinPerHand: 0, hands: 0 };
 
-  // Find the range for better display
-  const trueCountValues = chartData.map(d => d.trueCount);
-  const minCount = trueCountValues.length > 0 ? Math.min(...trueCountValues) : 0;
-  const maxCount = trueCountValues.length > 0 ? Math.max(...trueCountValues) : 0;
+  // Find the range for better display - fixed to show all quadrants
+  const minCount = -8;
+  const maxCount = 8;
   
   // Identify values outside the allowed range
-  const outOfRangeValues = chartData.filter(d => d.avgWinPerHand < -0.2 || d.avgWinPerHand > 0.2);
+  const outOfRangeValues = allData.filter(d => 
+    d.avgWinPerHand < -0.2 || 
+    d.avgWinPerHand > 0.2 ||
+    d.trueCount < -8 ||
+    d.trueCount > 8
+  );
 
   return (
     <Card className="p-6">
@@ -82,7 +85,8 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
         <h3 className="text-lg font-semibold mb-2">Average Win per Hand by True Count</h3>
         <div className="text-sm text-muted-foreground mb-4">
           <p>Average win/loss amount per hand for each true count value (minimum 10 hands required)</p>
-          <p className="text-xs">Y-axis range limited to -0.2 to 0.2 for better comparison</p>
+          <p className="text-xs">Y-axis fixed to -0.2 to 0.2, X-axis fixed to -8 to 8 (showing all quadrants)</p>
+          <p className="text-xs">Data points outside these ranges are not displayed on the graph</p>
         </div>
         
         {totalHands > 0 && (
@@ -111,7 +115,7 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
             {hasOutOfRangeValues && (
               <div className="bg-accent/10 border border-accent rounded-lg p-3">
                 <div className="text-sm font-medium text-accent-foreground mb-2">
-                  Values Outside Range (-0.2 to 0.2)
+                  Values Outside Display Range (not shown on graph)
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {outOfRangeValues.map(item => (
@@ -120,7 +124,9 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                       className={`px-2 py-1 rounded text-xs font-medium ${
                         item.avgWinPerHand < -0.2 
                           ? 'bg-destructive/20 text-destructive' 
-                          : 'bg-primary/20 text-primary'
+                          : item.avgWinPerHand > 0.2
+                          ? 'bg-primary/20 text-primary'
+                          : 'bg-muted/50 text-muted-foreground'
                       }`}
                     >
                       TC {item.trueCount}: {item.avgWinPerHand.toFixed(4)}
@@ -146,15 +152,15 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     dataKey="trueCount" 
                     type="number"
                     scale="linear"
-                    domain={[minCount - 1, maxCount + 1]}
+                    domain={[-8, 8]}
                     tick={{ fontSize: 12 }}
-                    axisLine={true}
+                    axisLine={false}
                     orientation="bottom"
                   />
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     label={{ value: 'Average Win per Hand', angle: -90, position: 'insideLeft' }}
-                    domain={[yAxisMin, yAxisMax]}
+                    domain={[-0.2, 0.2]}
                     tickFormatter={(value) => value.toFixed(3)}
                     axisLine={false}
                   />
@@ -162,6 +168,13 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                   {/* X-axis reference line at y=0 */}
                   <ReferenceLine 
                     y={0} 
+                    stroke="hsl(var(--foreground))" 
+                    strokeWidth={2}
+                    strokeDasharray="none"
+                  />
+                  {/* Y-axis reference line at x=0 */}
+                  <ReferenceLine 
+                    x={0} 
                     stroke="hsl(var(--foreground))" 
                     strokeWidth={2}
                     strokeDasharray="none"
