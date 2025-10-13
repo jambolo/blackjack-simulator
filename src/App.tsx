@@ -8,8 +8,9 @@ import { SimulationConfiguration } from "@/components/SimulationConfiguration";
 import { SimulationProgress } from "@/components/SimulationProgress";
 import { SimulationResults } from "@/components/SimulationResults";
 import { StrategyStatus } from "@/components/StrategyStatus";
+import { PerformanceStats } from "@/components/PerformanceStats";
 import { BlackjackRules, SimulationConfig, SimulationStats, DEFAULT_RULES, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
-import { runSimulation } from "@/lib/simulator";
+import { runSimulationMultiThreaded } from "@/lib/multi-threaded-simulator";
 import { debugStrategyLoading } from "@/lib/strategy-registry";
 import { Play, Square } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -27,6 +28,8 @@ function App() {
   const [currentStats, setCurrentStats] = useState<SimulationStats | null>(null);
   const [finalStats, setFinalStats] = useState<SimulationStats | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [simulationStartTime, setSimulationStartTime] = useState<number | null>(null);
+  const [simulationEndTime, setSimulationEndTime] = useState<number | null>(null);
 
   const handleStartSimulation = async () => {
     if (isSimulating) {
@@ -45,6 +48,8 @@ function App() {
     setProgress(0);
     setCurrentStats(null);
     setFinalStats(null);
+    setSimulationStartTime(Date.now());
+    setSimulationEndTime(null);
     
     const controller = new AbortController();
     setAbortController(controller);
@@ -52,19 +57,21 @@ function App() {
     try {
       toast.success("Starting blackjack simulation...");
       
-      const stats = await runSimulation(
+      const stats = await runSimulationMultiThreaded(
         rules || DEFAULT_RULES,
         simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount,
         (progressPercent, stats) => {
           if (controller.signal.aborted) return;
           setProgress(progressPercent);
           setCurrentStats(stats);
-        }
+        },
+        controller.signal
       );
 
       if (!controller.signal.aborted) {
         setFinalStats(stats);
         setProgress(100);
+        setSimulationEndTime(Date.now());
         const shoeCount = simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount;
         toast.success(`Simulation complete! Played ${stats.totalHands.toLocaleString()} hands across ${stats.totalShoes} shoes (${shoeCount.toLocaleString()} requested).`);
       }
@@ -116,16 +123,20 @@ function App() {
               <p className="text-sm text-muted-foreground">
                 Run {(simulationConfig?.shoeCount || DEFAULT_SIMULATION_CONFIG.shoeCount).toLocaleString()} shoes using optimal basic strategy
               </p>
+              <p className="text-xs text-accent-foreground mt-1">
+                ⚡ Multi-threaded simulation using {navigator.hardwareConcurrency || 4} CPU cores
+              </p>
             </div>
             <Button
               onClick={handleStartSimulation}
               size="lg"
               variant={isSimulating ? "destructive" : "default"}
-              className="min-w-32 transition-all active:scale-95"
+              className="min-w-32 transition-all duration-200 active:scale-95 hover:scale-105"
+              disabled={false}
             >
               {isSimulating ? (
                 <>
-                  <Square className="h-5 w-5 mr-2" />
+                  <Square className="h-5 w-5 mr-2 animate-pulse" />
                   Stop
                 </>
               ) : (
@@ -157,7 +168,15 @@ function App() {
 
         {/* Results */}
         {simulationComplete && (
-          <SimulationResults stats={finalStats} />
+          <div className="space-y-6">
+            <PerformanceStats
+              startTime={simulationStartTime || undefined}
+              endTime={simulationEndTime || undefined}
+              totalHands={finalStats.totalHands}
+              isMultiThreaded={true}
+            />
+            <SimulationResults stats={finalStats} />
+          </div>
         )}
 
 

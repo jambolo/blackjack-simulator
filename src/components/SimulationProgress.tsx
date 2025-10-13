@@ -70,8 +70,13 @@ export function SimulationProgress({ progress, isRunning, currentStats }: Simula
       )}
 
       {isRunning && (
-        <div className="text-center text-sm text-muted-foreground">
-          Running optimal basic strategy simulation...
+        <div className="text-center text-sm text-muted-foreground space-y-1">
+          <div>Running optimal basic strategy simulation...</div>
+          <div className="flex items-center justify-center gap-2 text-xs">
+            <span>⚡ Multi-threaded processing</span>
+            <span>•</span>
+            <span>{navigator.hardwareConcurrency || 4} CPU cores</span>
+          </div>
         </div>
       )}
     </Card>
