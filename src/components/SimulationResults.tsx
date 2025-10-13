@@ -16,9 +16,9 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
     return `${num.toFixed(decimals)}%`;
   };
 
-  const formatCurrency = (num: number) => {
+  const formatCurrency = (num: number, decimals = 2) => {
     const sign = num >= 0 ? '+' : '';
-    return `${sign}${num.toFixed(2)}`;
+    return `${sign}${num.toFixed(decimals)}`;
   };
 
   const winRate = stats.winRate;
@@ -101,7 +101,7 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">Avg Win/Hand</p>
                   <p className={`text-2xl font-bold ${avgWinPerHand >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(avgWinPerHand)}
+                    {formatCurrency(avgWinPerHand, 4)}
                   </p>
                 </div>
                 {avgWinPerHand >= 0 ? (
