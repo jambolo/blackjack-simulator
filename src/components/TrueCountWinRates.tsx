@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from 'recharts';
 import { TrueCountStats } from "@/lib/types";
 
 interface TrueCountWinRatesProps {
@@ -148,23 +148,23 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                     scale="linear"
                     domain={[minCount - 1, maxCount + 1]}
                     tick={{ fontSize: 12 }}
+                    axisLine={true}
+                    orientation="bottom"
                   />
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     label={{ value: 'Average Win per Hand', angle: -90, position: 'insideLeft' }}
                     domain={[yAxisMin, yAxisMax]}
                     tickFormatter={(value) => value.toFixed(3)}
+                    axisLine={false}
                   />
                   <Tooltip content={<AvgWinTooltip />} />
-                  {/* Reference line at 0 */}
-                  <Line 
-                    type="monotone" 
-                    dataKey={() => 0} 
-                    stroke="hsl(var(--muted-foreground))" 
-                    strokeWidth={1}
-                    strokeDasharray="5 5"
-                    dot={false}
-                    connectNulls={false}
+                  {/* X-axis reference line at y=0 */}
+                  <ReferenceLine 
+                    y={0} 
+                    stroke="hsl(var(--foreground))" 
+                    strokeWidth={2}
+                    strokeDasharray="none"
                   />
                   <Line 
                     type="monotone" 
