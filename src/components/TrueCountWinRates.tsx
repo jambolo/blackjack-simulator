@@ -146,7 +146,7 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
             <h4 className="text-md font-medium mb-2">Average Win per Hand by True Count</h4>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis 
                     dataKey="trueCount" 
@@ -159,7 +159,7 @@ export function TrueCountWinRates({ trueCountStats }: TrueCountWinRatesProps) {
                   />
                   <YAxis 
                     tick={{ fontSize: 12 }}
-                    label={{ value: 'Average Win per Hand', angle: -90, position: 'insideLeft' }}
+                    label={{ value: 'Average Win per Hand', angle: -90, position: 'insideLeft', offset: 10 }}
                     domain={[-0.2, 0.2]}
                     tickFormatter={(value) => value.toFixed(3)}
                     axisLine={false}
