@@ -1,5 +1,5 @@
 export interface BlackjackRules {
-  deckCount: 1 | 2 | 6 | 'continuous';
+  deckCount: 1 | 2 | 6;
   penetration: 0.5 | 1 | 1.5 | 2;
   dealerHitsSoft17: boolean;
   doubleAfterSplit: boolean;
@@ -81,5 +81,4 @@ export const VALID_PENETRATIONS: Record<BlackjackRules['deckCount'], number[]> =
   1: [0.5],
   2: [0.5, 1],
   6: [0.5, 1, 1.5, 2],
-  continuous: [],
 };

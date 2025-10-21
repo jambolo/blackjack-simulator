@@ -54,7 +54,7 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
             <Label htmlFor="deck-count">Number of Decks</Label>
             <Select
               value={rules.deckCount.toString()}
-              onValueChange={(value) => updateRule('deckCount', value === 'continuous' ? 'continuous' : parseInt(value) as 1 | 2 | 6)}
+              onValueChange={(value) => updateRule('deckCount', parseInt(value) as 1 | 2 | 6)}
             >
               <SelectTrigger id="deck-count">
                 <SelectValue />
@@ -63,31 +63,28 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
                 <SelectItem value="1">Single Deck</SelectItem>
                 <SelectItem value="2">Double Deck</SelectItem>
                 <SelectItem value="6">6-Deck Shoe</SelectItem>
-                <SelectItem value="continuous">6-Deck Continuous Shuffle</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {rules.deckCount !== 'continuous' && (
-            <div className="space-y-2">
-              <Label htmlFor="penetration">Deck Penetration</Label>
-              <Select
-                value={rules.penetration.toString()}
-                onValueChange={(value) => updateRule('penetration', parseFloat(value) as 0.5 | 1 | 1.5 | 2)}
-              >
-                <SelectTrigger id="penetration">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {validPenetrations.map((penetration) => (
-                    <SelectItem key={penetration} value={penetration.toString()}>
-                      {penetration === 0.5 ? '1/2 Deck' : `${penetration} Deck${penetration > 1 ? 's' : ''}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="penetration">Deck Penetration</Label>
+            <Select
+              value={rules.penetration.toString()}
+              onValueChange={(value) => updateRule('penetration', parseFloat(value) as 0.5 | 1 | 1.5 | 2)}
+            >
+              <SelectTrigger id="penetration">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {validPenetrations.map((penetration) => (
+                  <SelectItem key={penetration} value={penetration.toString()}>
+                    {penetration === 0.5 ? '1/2 Deck' : `${penetration} Deck${penetration > 1 ? 's' : ''}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="space-y-4">

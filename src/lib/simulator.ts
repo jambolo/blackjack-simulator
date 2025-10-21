@@ -19,16 +19,14 @@ export class BlackjackGame {
 
   constructor(rules: BlackjackRules) {
     this.rules = rules;
-    const deckCount = rules.deckCount === 'continuous' ? 6 : rules.deckCount;
-    this.deck = new Deck(deckCount);
+    this.deck = new Deck(rules.deckCount);
     this.stats = this.initializeStats();
     this.playerLogic = new PlayerLogic(rules, this.stats);
     this.dealerLogic = new DealerLogic(rules);
-    this.cardCounter = new HiLoCounter(deckCount);
+    this.cardCounter = new HiLoCounter(rules.deckCount);
     this.completedShoes = 0;
     this.currentShoeHands = 0;
     
-    // Start counting from 1 since we're starting with the first shoe
     this.stats.totalShoes = 1;
   }
 
@@ -139,31 +137,12 @@ export class BlackjackGame {
   }
 
   playHand(): GameResult {
-    // For continuous shuffle, we need to handle shoe counting differently
-    if (this.rules.deckCount === 'continuous') {
-      // Reset deck after every hand for continuous shuffle
-      const deckCount = 6;
-      this.deck.reset(deckCount);
-      this.cardCounter.reset(deckCount);
-      
-      // For continuous shuffle, we count every N hands as a "shoe equivalent"
-      // Using ~75 hands per shoe as a reasonable approximation
-      this.currentShoeHands++;
-      if (this.currentShoeHands >= 75) {
-        this.stats.totalShoes++;
-        this.currentShoeHands = 0;
-      }
-    } else {
-      // Check if we need a new shoe for regular decks
-      if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount as number)) {
-        // Start a new shoe
-        this.stats.totalShoes++;
-        this.deck.reset(this.rules.deckCount as number);
-        this.cardCounter.reset(this.rules.deckCount as number);
-      }
+    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount)) {
+      this.stats.totalShoes++;
+      this.deck.reset(this.rules.deckCount);
+      this.cardCounter.reset(this.rules.deckCount);
     }
 
-    // Record true count at the beginning of the round
     const trueCountAtStart = this.cardCounter.getTrueCountInteger();
     this.currentHandTrueCount = trueCountAtStart;
     
@@ -173,30 +152,25 @@ export class BlackjackGame {
       this.stats.trueCountFrequency[trueCountAtStart] = 1;
     }
 
-    // Deal initial cards
     const playerCard1 = this.deck.deal();
     const dealerCard1 = this.deck.deal();
     const playerCard2 = this.deck.deal();
     const dealerCard2 = this.deck.deal();
 
-    // Count the initial cards
     this.cardCounter.countCards([playerCard1, dealerCard1, playerCard2, dealerCard2]);
 
     const playerHand = this.createHand([playerCard1, playerCard2]);
     const dealerHand = this.dealerLogic.createHand([dealerCard1, dealerCard2]);
 
-    // Check for dealer blackjack (American style - peek)
     if (this.dealerLogic.hasBlackjack(dealerHand)) {
       const result = this.calculateResults([playerHand], dealerHand);
       this.updateStats(result);
       return result;
     }
 
-    // Play player hands
     const dealerUpCard = this.dealerLogic.getUpCardValue(dealerHand);
     const finalPlayerHands = this.playPlayerHand(playerHand, dealerUpCard);
 
-    // Play dealer hand only if player has non-busted hands
     const hasNonBustedHands = finalPlayerHands.some(hand => hand.total <= 21 && !hand.surrendered);
     if (hasNonBustedHands) {
       this.playDealerHand(dealerHand);
