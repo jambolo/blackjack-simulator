@@ -23,7 +23,7 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
   };
 
   const formatNetWinnings = (num: number) => {
-    const sign = num >= 0 ? '+' : '';
+    const sign = num >= 0 ? '+' : '-';
     if (num > 100000 || num < -100000) {
       const valueInK = Math.round(num / 1000);
       return `${sign}$${Math.abs(valueInK).toLocaleString()}k`;
