@@ -21,14 +21,6 @@ export class MultiThreadedSimulator {
     onProgress?: (progress: number, stats: SimulationStats) => void,
     abortSignal?: AbortSignal
   ): Promise<SimulationStats> {
-    console.log('╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║      MULTI-THREADED SIMULATION START                          ║');
-    console.log('╠═══════════════════════════════════════════════════════════════╣');
-    console.log('║ Target shoes:', targetShoes);
-    console.log('║ Worker count:', this.workerCount);
-    console.log('║ Rules:', JSON.stringify(rules, null, 2).split('\n').join('\n║ '));
-    console.log('╚═══════════════════════════════════════════════════════════════╝');
-
     this.onProgressCallback = onProgress;
     this.abortController = new AbortController();
     
@@ -44,9 +36,7 @@ export class MultiThreadedSimulator {
       this.activeWorkers = 0;
       this.combinedStats = null;
       
-      // Calculate effective worker count (minimum of 1 shoe per worker)
       const effectiveWorkerCount = Math.min(this.workerCount, targetShoes);
-      console.log(`📊 Effective worker count: ${effectiveWorkerCount}`);
       this.workerProgress = new Array(effectiveWorkerCount).fill(0);
 
       // Calculate shoes per worker, ensuring minimum of 1 shoe per worker
@@ -99,12 +89,7 @@ export class MultiThreadedSimulator {
           reject(new Error(`Worker ${i} error: ${error.message}`));
         };
 
-        // Start worker with its portion of the simulation
         const workerShoes = shoesPerWorker + (i < remainderShoes ? 1 : 0);
-        console.log(`🔧 Starting worker ${i}:`);
-        console.log(`   - Target shoes for this worker: ${workerShoes}`);
-        console.log(`   - Base shoes per worker: ${shoesPerWorker}`);
-        console.log(`   - Remainder adjustment: ${i < remainderShoes ? 1 : 0}`);
         
         const task: SimulationTask = {
           rules,
@@ -149,11 +134,6 @@ export class MultiThreadedSimulator {
   }
 
   private handleWorkerComplete(partialStats: PartialStats, workerId: number): void {
-    console.log(`✅ Worker ${workerId} completed:`);
-    console.log(`   - Total shoes: ${partialStats.totalShoes}`);
-    console.log(`   - Total hands: ${partialStats.totalHands}`);
-    console.log(`   - Completed workers: ${this.completedWorkers + 1}`);
-    
     this.combineStats(partialStats, workerId);
     this.completedWorkers++;
     this.activeWorkers--;
@@ -248,14 +228,6 @@ export class MultiThreadedSimulator {
       throw new Error('No stats to finalize');
     }
 
-    console.log('╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║      MULTI-THREADED SIMULATION COMPLETE                       ║');
-    console.log('╠═══════════════════════════════════════════════════════════════╣');
-    console.log('║ Combined total shoes:', this.combinedStats.totalShoes);
-    console.log('║ Combined total hands:', this.combinedStats.totalHands);
-    console.log('║ Completed workers:', this.completedWorkers);
-    console.log('╚═══════════════════════════════════════════════════════════════╝');
-
     return this.convertToSimulationStats(this.combinedStats);
   }
 
@@ -290,8 +262,6 @@ export async function runSimulationMultiThreaded(
   try {
     return await simulator.runSimulation(rules, targetShoes, onProgress, abortSignal);
   } catch (error) {
-    // If multi-threading fails, fallback to single-threaded
-    console.warn('Multi-threaded simulation failed, falling back to single-threaded:', error);
     const { runSimulation } = await import('./simulator');
     return runSimulation(rules, targetShoes, onProgress);
   }

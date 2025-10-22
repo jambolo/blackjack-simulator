@@ -32,7 +32,6 @@ export class PlayerLogic {
     try {
       this.strategy = StrategyManager.getStrategy(this.rules);
     } catch (error) {
-      console.warn('Failed to load optimized strategy, using fallback:', error);
       this.strategy = null;
     }
   }

@@ -11,14 +11,8 @@ import { StrategyStatus } from "@/components/StrategyStatus";
 import { PerformanceStats } from "@/components/PerformanceStats";
 import { BlackjackRules, SimulationConfig, SimulationStats, DEFAULT_RULES, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
 import { runSimulationMultiThreaded } from "@/lib/multi-threaded-simulator";
-import { debugStrategyLoading } from "@/lib/strategy-registry";
 import { Play, Square } from "@phosphor-icons/react";
 import { toast } from "sonner";
-
-// Debug strategy loading on app start (development only)
-if (import.meta.env.DEV) {
-  debugStrategyLoading();
-}
 
 function App() {
   const [rules, setRules] = useKV<BlackjackRules>('blackjack-rules', DEFAULT_RULES);
@@ -81,7 +75,6 @@ function App() {
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        console.error('Simulation error:', error);
         toast.error("Simulation failed. Please try again.");
       }
     } finally {

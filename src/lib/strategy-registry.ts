@@ -183,41 +183,12 @@ export function getStrategyData(rules: BlackjackRules): BasicStrategyData {
   const strategy = STRATEGY_REGISTRY[key];
   
   if (!strategy) {
-    // Fallback to S17 no surrender if specific strategy not found
-    console.warn(`Strategy not found for ${key}, falling back to s17-das-ns`);
     return STRATEGY_REGISTRY['s17-das-ns'] as BasicStrategyData;
   }
   
   return strategy as BasicStrategyData;
 }
 
-/**
- * Lists all available strategies
- */
 export function getAvailableStrategies(): string[] {
   return Object.keys(STRATEGY_REGISTRY);
-}
-
-/**
- * Debug function to validate strategy loading
- */
-export function debugStrategyLoading(): void {
-  console.log('=== Strategy Loading Debug ===');
-  console.log('Available strategies:', getAvailableStrategies());
-  
-  // Test each strategy
-  getAvailableStrategies().forEach(key => {
-    const strategy = STRATEGY_REGISTRY[key];
-    console.log(`\nStrategy: ${key}`);
-    console.log(`Name: ${strategy.name}`);
-    console.log(`Hard totals: ${Object.keys(strategy.hardTotals).length} entries`);
-    console.log(`Soft totals: ${Object.keys(strategy.softTotals).length} entries`);
-    console.log(`Pairs: ${Object.keys(strategy.pairs).length} entries`);
-    console.log(`Surrender: ${Object.keys(strategy.surrender).length} entries`);
-    
-    // Test a few key lookups
-    console.log('Sample hard 16 vs 10:', strategy.hardTotals['16']?.['10'] || 'MISSING');
-    console.log('Sample soft 18 vs 6:', strategy.softTotals['18']?.['6'] || 'MISSING');
-    console.log('Sample pair A vs 5:', strategy.pairs['A']?.['5'] || 'MISSING');
-  });
 }

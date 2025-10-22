@@ -238,15 +238,12 @@ export class StrategyManager {
       return this.cache.get(cacheKey)!;
     }
     
-    // Load and cache the strategy
     try {
       const optimizedStrategy = loadBasicStrategy(rules);
       const strategy = new OptimizedBasicStrategy(optimizedStrategy);
       this.cache.set(cacheKey, strategy);
       return strategy;
     } catch (error) {
-      console.error('Failed to load strategy, falling back to default:', error);
-      // Fallback to a default strategy or throw
       throw new Error('Unable to load any basic strategy');
     }
   }

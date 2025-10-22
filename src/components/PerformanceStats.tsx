@@ -21,9 +21,6 @@ export function PerformanceStats({ startTime, endTime, totalHands, isMultiThread
       <div className="flex items-center gap-2 mb-3">
         <Lightning className="h-5 w-5 text-accent" />
         <h4 className="font-semibold text-foreground">Performance Metrics</h4>
-        <Badge variant="secondary" className="ml-auto">
-          {isMultiThreaded ? `${estimatedSpeedup}x Multi-Core` : 'Single-Core'}
-        </Badge>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -57,12 +54,6 @@ export function PerformanceStats({ startTime, endTime, totalHands, isMultiThread
           </div>
         </div>
       </div>
-      
-      {isMultiThreaded && (
-        <div className="mt-3 text-xs text-center text-muted-foreground">
-          Utilizing parallel processing across multiple CPU cores for maximum performance
-        </div>
-      )}
     </Card>
   );
 }

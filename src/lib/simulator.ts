@@ -138,27 +138,10 @@ export class BlackjackGame {
 
   playHand(): GameResult {
 
-    // === DEBUG: Log every shoe reset ===
-    const needsNewShoeResult = this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount);
-    if (needsNewShoeResult) {
-      console.log(`🔄 SHOE RESET at hand #${this.stats.totalHands}:`);
-      console.log(`   - Cards remaining before reset: ${this.deck.getRemainingCards()}`);
-      console.log(`   - totalShoes before increment: ${this.stats.totalShoes}`);
-      console.log(`   - Penetration threshold: ${Math.floor(this.rules.penetration * 52)} cards`);
-      console.log(`   - Total decks: ${this.rules.deckCount}`);
-    }
-
     if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount)) {
       this.stats.totalShoes++;
-      console.log(`   - totalShoes after increment: ${this.stats.totalShoes}`);
       this.deck.reset(this.rules.deckCount);
       this.cardCounter.reset(this.rules.deckCount);
-      console.log(`   - Cards after reset: ${this.deck.getRemainingCards()}`);
-    }
-
-    // === DEBUG: Log every 100th hand ===
-    if (this.stats.totalHands > 0 && this.stats.totalHands % 100 === 0) {
-      console.log(`📊 Hand #${this.stats.totalHands}: totalShoes = ${this.stats.totalShoes}, cards remaining = ${this.deck.getRemainingCards()}`);
     }
 
     const trueCountAtStart = this.cardCounter.getTrueCountInteger();
@@ -273,29 +256,18 @@ export async function runSimulation(
   targetShoes: number = 1000,
   onProgress?: (progress: number, stats: SimulationStats) => void
 ): Promise<SimulationStats> {
-  console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log('║           SIMULATION START - runSimulation()                  ║');
-  console.log('╠═══════════════════════════════════════════════════════════════╣');
-  console.log('║ Target shoes:', targetShoes);
-  console.log('║ Rules:', JSON.stringify(rules, null, 2).split('\n').join('\n║ '));
-  console.log('╚═══════════════════════════════════════════════════════════════╝');
-
   const game = new BlackjackGame(rules);
   
-  // Initialize strategy loading
   game.initialize();
   
   let progressUpdateCounter = 0;
-  const progressUpdateInterval = Math.max(1, Math.floor(targetShoes / 100)); // Update progress every 1% or at least every shoe
+  const progressUpdateInterval = Math.max(1, Math.floor(targetShoes / 100));
   
-  // Continue playing until we reach the target number of shoes
   while (game.getStats().totalShoes < targetShoes) {
     game.playHand();
-    // Report progress periodically
     const currentStats = game.getStats();
     if (currentStats.totalShoes - progressUpdateCounter >= progressUpdateInterval) {
       const progress = Math.min((currentStats.totalShoes / targetShoes) * 100, 99);
-      console.log(`📈 Progress: ${progress.toFixed(1)}% (${currentStats.totalShoes}/${targetShoes} shoes, ${currentStats.totalHands} hands)`);
       if (onProgress) {
         onProgress(progress, currentStats);
       }
@@ -305,20 +277,6 @@ export async function runSimulation(
   
   const finalStats = game.getStats();
   
-  console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log('║           SIMULATION COMPLETE - FINAL RESULTS                 ║');
-  console.log('╠═══════════════════════════════════════════════════════════════╣');
-  console.log('║ Target shoes:', targetShoes);
-  console.log('║ Actual totalShoes:', finalStats.totalShoes);
-  console.log('║ Overshoot:', finalStats.totalShoes - targetShoes);
-  console.log('║ Overshoot percentage:', ((finalStats.totalShoes / targetShoes - 1) * 100).toFixed(2) + '%');
-  console.log('║ Total hands played:', finalStats.totalHands);
-  console.log('║ Hands per shoe:', (finalStats.totalHands / finalStats.totalShoes).toFixed(2));
-  console.log('╚═══════════════════════════════════════════════════════════════╝');
-  
-  // Calculate standard deviation
-  // This is a simplified calculation - in a real implementation,
-  // you'd track individual hand results to calculate proper variance
   const variance = Math.abs(finalStats.netWinnings) / Math.sqrt(finalStats.totalHands);
   finalStats.standardDeviation = variance;
   
