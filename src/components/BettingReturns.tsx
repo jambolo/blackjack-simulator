@@ -20,6 +20,7 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
     .sort((a, b) => a.trueCount - b.trueCount);
 
   const totalReturns = allData.reduce((sum, item) => sum + item.totalReturns, 0);
+  const totalHands = allData.reduce((sum, item) => sum + item.hands, 0);
 
   return (
     <Card className="p-6">
@@ -35,10 +36,18 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
           </div>
         </div>
 
-        <div className="bg-primary/10 p-4 rounded-lg mb-4">
-          <div className="text-sm text-muted-foreground">Total Returns</div>
-          <div className={`text-2xl font-bold ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
-            {totalReturns >= 0 ? '+' : ''}{totalReturns.toFixed(2)} units
+        <div className="bg-primary/10 p-4 rounded-lg mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-sm text-muted-foreground">Total Returns</div>
+            <div className={`text-2xl font-bold ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
+              {totalReturns >= 0 ? '+' : ''}{totalReturns.toFixed(2)} units
+            </div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Avg. Return per Hand</div>
+            <div className={`text-2xl font-bold ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
+              {totalReturns >= 0 ? '+' : ''}{(totalReturns/totalHands).toFixed(3)} units
+            </div>
           </div>
         </div>
       </div>
@@ -48,9 +57,7 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
           <thead>
             <tr className="border-b">
               <th className="text-left py-2 px-2">True Count</th>
-              <th className="text-right py-2 px-2">Hands</th>
               <th className="text-right py-2 px-2">Bet Size</th>
-              <th className="text-right py-2 px-2">Avg Win/Hand</th>
               <th className="text-right py-2 px-2">Total Returns</th>
             </tr>
           </thead>
@@ -61,28 +68,13 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
                 className="border-b border-border/50 hover:bg-muted/50"
               >
                 <td className="py-2 px-2 font-medium">{item.trueCount}</td>
-                <td className="text-right py-2 px-2">{item.hands.toLocaleString()}</td>
                 <td className="text-right py-2 px-2">{item.betAmount.toFixed(1)}</td>
-                <td className={`text-right py-2 px-2 ${item.avgWinPerHand >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                  {item.avgWinPerHand >= 0 ? '+' : ''}{item.avgWinPerHand.toFixed(4)}
-                </td>
                 <td className={`text-right py-2 px-2 font-medium ${item.totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
                   {item.totalReturns >= 0 ? '+' : ''}{item.totalReturns.toFixed(2)}
                 </td>
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            <tr className="border-t-2 font-bold">
-              <td className="py-2 px-2">Total</td>
-              <td className="text-right py-2 px-2">{allData.reduce((sum, item) => sum + item.hands, 0).toLocaleString()}</td>
-              <td className="text-right py-2 px-2">—</td>
-              <td className="text-right py-2 px-2">—</td>
-              <td className={`text-right py-2 px-2 ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                {totalReturns >= 0 ? '+' : ''}{totalReturns.toFixed(2)}
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
 
