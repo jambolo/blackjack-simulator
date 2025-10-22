@@ -33,6 +33,7 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
             <div>• True Count ≤ -3: Bet = 0 (no play)</div>
             <div>• True Count -2, -1, 0: Bet = 0.5 units</div>
             <div>• True Count ≥ 1: Bet = True Count units</div>
+            <div>• True Count ≥ 5: Bet = 8 units</div>
           </div>
         </div>
 
