@@ -137,7 +137,7 @@ export class BlackjackGame {
   }
 
   playHand(): GameResult {
-    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount) || this.deck.getRemainingCards() < 4) {
+    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount) || this.deck.getRemainingCards() < 10) {
       this.stats.totalShoes++;
       this.deck.reset(this.rules.deckCount);
       this.cardCounter.reset(this.rules.deckCount);
@@ -152,33 +152,49 @@ export class BlackjackGame {
       this.stats.trueCountFrequency[trueCountAtStart] = 1;
     }
 
-    const playerCard1 = this.deck.deal();
-    const dealerCard1 = this.deck.deal();
-    const playerCard2 = this.deck.deal();
-    const dealerCard2 = this.deck.deal();
+    if (this.deck.getRemainingCards() < 4) {
+      this.stats.totalShoes++;
+      this.deck.reset(this.rules.deckCount);
+      this.cardCounter.reset(this.rules.deckCount);
+    }
 
-    this.cardCounter.countCards([playerCard1, dealerCard1, playerCard2, dealerCard2]);
+    try {
+      const playerCard1 = this.deck.deal();
+      const dealerCard1 = this.deck.deal();
+      const playerCard2 = this.deck.deal();
+      const dealerCard2 = this.deck.deal();
 
-    const playerHand = this.createHand([playerCard1, playerCard2]);
-    const dealerHand = this.dealerLogic.createHand([dealerCard1, dealerCard2]);
+      this.cardCounter.countCards([playerCard1, dealerCard1, playerCard2, dealerCard2]);
 
-    if (this.dealerLogic.hasBlackjack(dealerHand)) {
-      const result = this.calculateResults([playerHand], dealerHand);
+      const playerHand = this.createHand([playerCard1, playerCard2]);
+      const dealerHand = this.dealerLogic.createHand([dealerCard1, dealerCard2]);
+
+      if (this.dealerLogic.hasBlackjack(dealerHand)) {
+        const result = this.calculateResults([playerHand], dealerHand);
+        this.updateStats(result);
+        return result;
+      }
+
+      const dealerUpCard = this.dealerLogic.getUpCardValue(dealerHand);
+      const finalPlayerHands = this.playPlayerHand(playerHand, dealerUpCard);
+
+      const hasNonBustedHands = finalPlayerHands.some(hand => hand.total <= 21 && !hand.surrendered);
+      if (hasNonBustedHands) {
+        this.playDealerHand(dealerHand);
+      }
+
+      const result = this.calculateResults(finalPlayerHands, dealerHand);
       this.updateStats(result);
       return result;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Not enough cards')) {
+        this.stats.totalShoes++;
+        this.deck.reset(this.rules.deckCount);
+        this.cardCounter.reset(this.rules.deckCount);
+        return this.playHand();
+      }
+      throw error;
     }
-
-    const dealerUpCard = this.dealerLogic.getUpCardValue(dealerHand);
-    const finalPlayerHands = this.playPlayerHand(playerHand, dealerUpCard);
-
-    const hasNonBustedHands = finalPlayerHands.some(hand => hand.total <= 21 && !hand.surrendered);
-    if (hasNonBustedHands) {
-      this.playDealerHand(dealerHand);
-    }
-
-    const result = this.calculateResults(finalPlayerHands, dealerHand);
-    this.updateStats(result);
-    return result;
   }
 
   private initializeTrueCountStats(trueCount: number): void {

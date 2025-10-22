@@ -19,6 +19,9 @@ export class DealerLogic {
   playDealerHand(dealerHand: Hand, deck: Deck, cardCounter: HiLoCounter): Hand {
     // Continue hitting while dealer should hit
     while (this.shouldDealerHit(dealerHand)) {
+      if (!deck.hasEnoughCards(1)) {
+        throw new Error('Not enough cards for dealer to complete hand');
+      }
       const card = deck.deal();
       cardCounter.countCard(card);
       dealerHand.cards.push(card);

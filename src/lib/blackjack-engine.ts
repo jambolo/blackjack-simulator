@@ -37,11 +37,15 @@ export class Deck {
 
   deal(): Card {
     if (this.cards.length === 0) {
-      throw new Error('Cannot deal from empty deck');
+      throw new Error('Cannot deal from empty deck - deck should be reset before calling deal()');
     }
     const card = this.cards.pop()!;
     this.discardPile.push(card);
     return card;
+  }
+
+  hasEnoughCards(count: number): boolean {
+    return this.cards.length >= count;
   }
 
   needsNewShoe(penetration: number, totalDecks: number): boolean {

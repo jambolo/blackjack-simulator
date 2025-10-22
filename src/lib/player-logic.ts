@@ -201,6 +201,10 @@ export class PlayerLogic {
 
     const newHand = this.createHand([secondCard], currentHand.bet);
     
+    if (!deck.hasEnoughCards(2)) {
+      throw new Error('Not enough cards to complete split operation');
+    }
+    
     // Deal new cards to both hands
     const card1 = deck.deal();
     const card2 = deck.deal();
@@ -316,6 +320,9 @@ export class PlayerLogic {
   private performDouble(hand: Hand, deck: Deck, cardCounter: HiLoCounter): void {
     hand.doubled = true;
     hand.bet *= 2;
+    if (!deck.hasEnoughCards(1)) {
+      throw new Error('Not enough cards to complete double operation');
+    }
     const card = deck.deal();
     cardCounter.countCard(card);
     hand.cards.push(card);
@@ -326,6 +333,9 @@ export class PlayerLogic {
    * Performs a hit action
    */
   private performHit(hand: Hand, deck: Deck, cardCounter: HiLoCounter): void {
+    if (!deck.hasEnoughCards(1)) {
+      throw new Error('Not enough cards to complete hit operation');
+    }
     const card = deck.deal();
     cardCounter.countCard(card);
     hand.cards.push(card);
