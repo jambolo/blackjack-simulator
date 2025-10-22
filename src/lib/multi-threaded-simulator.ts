@@ -35,20 +35,18 @@ export class MultiThreadedSimulator {
       this.completedWorkers = 0;
       this.activeWorkers = 0;
       this.combinedStats = null;
-      this.workerProgress = new Array(this.workerCount).fill(0);
+      
+      // Calculate effective worker count (minimum of 1 shoe per worker)
+      const effectiveWorkerCount = Math.min(this.workerCount, targetShoes);
+      this.workerProgress = new Array(effectiveWorkerCount).fill(0);
 
-      // Calculate shoes per worker
-      const shoesPerWorker = Math.floor(targetShoes / this.workerCount);
-      const remainderShoes = targetShoes % this.workerCount;
-
-      // For very small simulations, fall back to single-threaded
-      if (shoesPerWorker < 1) {
-        this.runSingleThreaded(rules, targetShoes, onProgress).then(resolve).catch(reject);
-        return;
-      }
+      // Calculate shoes per worker, ensuring minimum of 1 shoe per worker
+      // If targetShoes < workerCount, reduce worker count to match
+      const shoesPerWorker = Math.floor(targetShoes / effectiveWorkerCount);
+      const remainderShoes = targetShoes % effectiveWorkerCount;
 
       // Create workers
-      for (let i = 0; i < this.workerCount; i++) {
+      for (let i = 0; i < effectiveWorkerCount; i++) {
         const worker = new Worker(
           new URL('./simulation-worker.ts', import.meta.url),
           { type: 'module' }
@@ -74,7 +72,7 @@ export class MultiThreadedSimulator {
 
             case 'complete':
               this.handleWorkerComplete(data.partialStats, workerId);
-              if (this.completedWorkers === this.workerCount) {
+              if (this.completedWorkers === effectiveWorkerCount) {
                 this.cleanup();
                 resolve(this.finalizeStats());
               }
@@ -105,16 +103,6 @@ export class MultiThreadedSimulator {
     });
   }
 
-  private async runSingleThreaded(
-    rules: BlackjackRules,
-    targetShoes: number,
-    onProgress?: (progress: number, stats: SimulationStats) => void
-  ): Promise<SimulationStats> {
-    // Fallback to original single-threaded simulation
-    const { runSimulation } = await import('./simulator');
-    return runSimulation(rules, targetShoes, onProgress);
-  }
-
   private handleProgress(progress: number, partialStats: PartialStats, workerId: number): void {
     // Update progress for this specific worker
     this.workerProgress[workerId] = progress;
@@ -123,7 +111,7 @@ export class MultiThreadedSimulator {
     this.combineStats(partialStats, workerId);
     
     // Calculate overall progress (average of all workers)
-    const averageProgress = this.workerProgress.reduce((sum, p) => sum + p, 0) / this.workerCount;
+    const averageProgress = this.workerProgress.reduce((sum, p) => sum + p, 0) / this.workerProgress.length;
 
     if (this.onProgressCallback && this.combinedStats) {
       const stats = this.convertToSimulationStats(this.combinedStats);
