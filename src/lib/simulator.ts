@@ -137,7 +137,7 @@ export class BlackjackGame {
   }
 
   playHand(): GameResult {
-    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount)) {
+    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount) || this.deck.getRemainingCards() < 4) {
       this.stats.totalShoes++;
       this.deck.reset(this.rules.deckCount);
       this.cardCounter.reset(this.rules.deckCount);
