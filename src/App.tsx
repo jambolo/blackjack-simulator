@@ -9,6 +9,7 @@ import { SimulationProgress } from "@/components/SimulationProgress";
 import { SimulationResults } from "@/components/SimulationResults";
 import { StrategyStatus } from "@/components/StrategyStatus";
 import { PerformanceStats } from "@/components/PerformanceStats";
+import { BettingReturns } from "@/components/BettingReturns";
 import { BlackjackRules, SimulationConfig, SimulationStats, DEFAULT_RULES, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
 import { runSimulationMultiThreaded } from "@/lib/multi-threaded-simulator";
 import { Play, Square } from "@phosphor-icons/react";
@@ -173,6 +174,7 @@ function App() {
               isMultiThreaded={true}
             />
             <SimulationResults stats={finalStats} />
+            <BettingReturns trueCountStats={finalStats.trueCountStats} />
           </div>
         )}
 

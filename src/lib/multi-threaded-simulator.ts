@@ -1,6 +1,16 @@
 import { BlackjackRules, SimulationStats, TrueCountStats } from './types';
 import { WorkerMessage, SimulationTask, PartialStats } from './simulation-worker';
 
+function calculateBetSize(trueCount: number): number {
+  if (trueCount <= -3) {
+    return 0;
+  } else if (trueCount === -2 || trueCount === -1 || trueCount === 0) {
+    return 0.5;
+  } else {
+    return trueCount;
+  }
+}
+
 export class MultiThreadedSimulator {
   private workers: Worker[] = [];
   private activeWorkers = 0;
@@ -188,6 +198,8 @@ export class MultiThreadedSimulator {
           blackjacks: 0,
           netWinnings: 0,
           winRate: 0,
+          betAmount: calculateBetSize(countNum),
+          totalReturns: 0,
         };
       }
 
@@ -198,6 +210,7 @@ export class MultiThreadedSimulator {
       combined.pushes += stats.pushes;
       combined.blackjacks += stats.blackjacks;
       combined.netWinnings += stats.netWinnings;
+      combined.totalReturns += stats.totalReturns;
 
       // Recalculate win rate
       const totalDecisions = combined.wins + combined.losses;

@@ -192,7 +192,19 @@ export class BlackjackGame {
         blackjacks: 0,
         netWinnings: 0,
         winRate: 0,
+        betAmount: this.calculateBetSize(trueCount),
+        totalReturns: 0,
       };
+    }
+  }
+
+  private calculateBetSize(trueCount: number): number {
+    if (trueCount <= -3) {
+      return 0;
+    } else if (trueCount === -2 || trueCount === -1 || trueCount === 0) {
+      return 0.5;
+    } else {
+      return trueCount;
     }
   }
 
@@ -207,6 +219,13 @@ export class BlackjackGame {
     // Update true count stats
     tcStats.hands++;
     tcStats.netWinnings += result.netWin;
+    
+    // Calculate returns based on bet size
+    const betSize = tcStats.betAmount;
+    if (betSize > 0) {
+      const returnAmount = result.netWin * betSize;
+      tcStats.totalReturns += returnAmount;
+    }
 
     for (let i = 0; i < result.results.length; i++) {
       const outcome = result.results[i];

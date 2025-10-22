@@ -43,6 +43,8 @@ export interface TrueCountStats {
   blackjacks: number;
   netWinnings: number;
   winRate: number;
+  betAmount: number;
+  totalReturns: number;
 }
 
 export interface SimulationStats {
