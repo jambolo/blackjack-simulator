@@ -22,6 +22,15 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
     return `${sign}${num.toFixed(decimals)}`;
   };
 
+  const formatNetWinnings = (num: number) => {
+    const sign = num >= 0 ? '+' : '';
+    if (num > 100000 || num < -100000) {
+      const valueInK = Math.round(num / 1000);
+      return `${sign}$${Math.abs(valueInK).toLocaleString()}k`;
+    }
+    return `${sign}$${Math.abs(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const winRate = stats.winRate;
   const lossRate = ((stats.losses / (stats.wins + stats.losses)) * 100) || 0;
   const pushRate = ((stats.pushes / stats.totalHands) * 100) || 0;
@@ -37,7 +46,7 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <Trophy className="h-6 w-6 text-accent" />
-        Simulation Results
+        Simulation Results (Flat Betting $1)
       </h2>
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -71,7 +80,7 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">Net Winnings</p>
                   <p className={`text-2xl font-bold ${stats.netWinnings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(stats.netWinnings)}
+                    {formatNetWinnings(stats.netWinnings)}
                   </p>
                 </div>
                 {stats.netWinnings >= 0 ? (
