@@ -16,7 +16,7 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
       avgWinPerHand: stats.hands > 0 ? stats.netWinnings / stats.hands : 0,
       totalReturns: stats.totalReturns,
     }))
-    .filter(item => item.hands >= 10)
+    .filter(item => item.hands >= 10 && item.trueCount >= -2 && item.trueCount <= 8)
     .sort((a, b) => a.trueCount - b.trueCount);
 
   const totalReturns = allData.reduce((sum, item) => sum + item.totalReturns, 0);
