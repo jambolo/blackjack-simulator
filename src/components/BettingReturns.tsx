@@ -16,7 +16,7 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
       avgWinPerHand: stats.hands > 0 ? stats.netWinnings / stats.hands : 0,
       totalReturns: stats.totalReturns,
     }))
-    .filter(item => item.hands >= 10 && item.trueCount >= -2 && item.trueCount <= 8)
+    .filter(item => item.trueCount >= -2 && item.trueCount <= 8)
     .sort((a, b) => a.trueCount - b.trueCount);
 
   const totalReturns = allData.reduce((sum, item) => sum + item.totalReturns, 0);
@@ -57,24 +57,34 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-2 px-2">True Count</th>
-              <th className="text-right py-2 px-2">Bet Size</th>
-              <th className="text-right py-2 px-2">Total Returns</th>
+              <th className="text-left py-2 px-2"></th>
+              {allData.map((item) => (
+                <th key={item.trueCount} className="text-right py-2 px-2 font-medium">
+                  {item.trueCount}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {allData.map((item) => (
-              <tr 
-                key={item.trueCount} 
-                className="border-b border-border/50 hover:bg-muted/50"
-              >
-                <td className="py-2 px-2 font-medium">{item.trueCount}</td>
-                <td className="text-right py-2 px-2">{item.betAmount.toFixed(1)}</td>
-                <td className={`text-right py-2 px-2 font-medium ${item.totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
+            <tr className="border-b border-border/50 hover:bg-muted/50">
+              <td className="py-2 px-2 font-medium">Bet Size</td>
+              {allData.map((item) => (
+                <td key={item.trueCount} className="text-right py-2 px-2">
+                  {item.betAmount.toFixed(1)}
+                </td>
+              ))}
+            </tr>
+            <tr className="border-b border-border/50 hover:bg-muted/50">
+              <td className="py-2 px-2 font-medium">Total Returns</td>
+              {allData.map((item) => (
+                <td 
+                  key={item.trueCount} 
+                  className={`text-right py-2 px-2 font-medium ${item.totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}
+                >
                   {item.totalReturns >= 0 ? '+' : ''}{item.totalReturns.toFixed(2)}
                 </td>
-              </tr>
-            ))}
+              ))}
+            </tr>
           </tbody>
         </table>
       </div>
