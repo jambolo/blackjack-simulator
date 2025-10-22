@@ -63,7 +63,11 @@ function App() {
         (progressPercent, stats) => {
           if (controller.signal.aborted) return;
           setProgress(progressPercent);
-          setCurrentStats(stats);
+          // Only update stats if they contain actual data (totalHands > 0)
+          // This prevents displaying accumulated stats during progress updates
+          if (stats.totalHands > 0) {
+            setCurrentStats(stats);
+          }
         },
         controller.signal
       );

@@ -48,9 +48,12 @@ export class Deck {
     return this.cards.length >= count;
   }
 
+  // Returns true if there are not enough cards remaining in the shoe to play a hand.
+  // `penetration` is the minimum number of decks required, so the minimum number of cards required is
+  // Math.floor(penetration * 52). This number is assumed to be less than the total number of decks in a shoe.
+  // `totalDecks` is unused and can be removed.
   needsNewShoe(penetration: number, totalDecks: number): boolean {
-    const penetrationInCards = penetration * 52;
-    return this.cards.length < penetrationInCards;
+    return this.cards.length < Math.floor(penetration * 52);
   }
 
   getRemainingCards(): number {

@@ -19,19 +19,19 @@ export function SimulationConfiguration({ simulationConfig, onSimulationConfigCh
         <Input
           id="shoe-count"
           type="number"
-          min="10000"
+          min="1"
           max="100000000"
-          step="10000"
+          step="1"
           value={simulationConfig.shoeCount}
           onChange={(e) => {
             const value = parseInt(e.target.value) || DEFAULT_SIMULATION_CONFIG.shoeCount;
-            const clampedValue = Math.max(10000, Math.min(100000000, value));
+            const clampedValue = Math.max(1, Math.min(100000000, value));
             updateSimulationConfig('shoeCount', clampedValue);
           }}
           className="font-mono"
         />
         <p className="text-xs text-muted-foreground">
-          Range: 10,000 to 100,000,000 shoes. More shoes provide more accurate results but take longer to run.
+          Range: 1 to 100,000,000 shoes. More shoes provide more accurate results but take longer to run.
         </p>
       </div>
     </div>

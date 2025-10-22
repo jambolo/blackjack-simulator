@@ -43,14 +43,28 @@ self.onmessage = async function(e: MessageEvent<SimulationTask>) {
     };
     self.postMessage(startMessage);
 
+    console.log(`[Worker ${workerId}] Starting with target: ${targetShoes} shoes`);
+    
     const game = new BlackjackGame(rules);
     game.initialize();
     
     let lastProgressUpdate = 0;
     const progressUpdateInterval = Math.max(1, Math.floor(targetShoes / 100)); // Update every 1% or at least every shoe
     
+    let loopIterations = 0;
+    const maxIterations = targetShoes * 100; // Safety limit
+    
     // Continue playing until we reach the target number of shoes
     while (game.getStats().totalShoes < targetShoes) {
+      loopIterations++;
+      
+      if (loopIterations > maxIterations) {
+        console.error(`[Worker ${workerId}] INFINITE LOOP DETECTED! Breaking out.`);
+        console.error(`  - Loop iterations: ${loopIterations}`);
+        console.error(`  - Target: ${targetShoes}, Current: ${game.getStats().totalShoes}`);
+        break;
+      }
+      
       game.playHand();
       
       // Report progress periodically
@@ -72,6 +86,12 @@ self.onmessage = async function(e: MessageEvent<SimulationTask>) {
     }
     
     const finalStats = game.getStats();
+    
+    console.log(`[Worker ${workerId}] Completed:`);
+    console.log(`  - Target shoes: ${targetShoes}`);
+    console.log(`  - Actual shoes: ${finalStats.totalShoes}`);
+    console.log(`  - Total hands: ${finalStats.totalHands}`);
+    console.log(`  - Loop iterations: ${loopIterations}`);
     
     // Calculate standard deviation (simplified)
     const variance = Math.abs(finalStats.netWinnings) / Math.sqrt(finalStats.totalHands);

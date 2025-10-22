@@ -21,6 +21,14 @@ export class MultiThreadedSimulator {
     onProgress?: (progress: number, stats: SimulationStats) => void,
     abortSignal?: AbortSignal
   ): Promise<SimulationStats> {
+    console.log('╔═══════════════════════════════════════════════════════════════╗');
+    console.log('║      MULTI-THREADED SIMULATION START                          ║');
+    console.log('╠═══════════════════════════════════════════════════════════════╣');
+    console.log('║ Target shoes:', targetShoes);
+    console.log('║ Worker count:', this.workerCount);
+    console.log('║ Rules:', JSON.stringify(rules, null, 2).split('\n').join('\n║ '));
+    console.log('╚═══════════════════════════════════════════════════════════════╝');
+
     this.onProgressCallback = onProgress;
     this.abortController = new AbortController();
     
@@ -38,6 +46,7 @@ export class MultiThreadedSimulator {
       
       // Calculate effective worker count (minimum of 1 shoe per worker)
       const effectiveWorkerCount = Math.min(this.workerCount, targetShoes);
+      console.log(`📊 Effective worker count: ${effectiveWorkerCount}`);
       this.workerProgress = new Array(effectiveWorkerCount).fill(0);
 
       // Calculate shoes per worker, ensuring minimum of 1 shoe per worker
@@ -92,6 +101,11 @@ export class MultiThreadedSimulator {
 
         // Start worker with its portion of the simulation
         const workerShoes = shoesPerWorker + (i < remainderShoes ? 1 : 0);
+        console.log(`🔧 Starting worker ${i}:`);
+        console.log(`   - Target shoes for this worker: ${workerShoes}`);
+        console.log(`   - Base shoes per worker: ${shoesPerWorker}`);
+        console.log(`   - Remainder adjustment: ${i < remainderShoes ? 1 : 0}`);
+        
         const task: SimulationTask = {
           rules,
           targetShoes: workerShoes,
@@ -106,20 +120,40 @@ export class MultiThreadedSimulator {
   private handleProgress(progress: number, partialStats: PartialStats, workerId: number): void {
     // Update progress for this specific worker
     this.workerProgress[workerId] = progress;
-    
-    // Combine progress from all workers
-    this.combineStats(partialStats, workerId);
-    
+
     // Calculate overall progress (average of all workers)
     const averageProgress = this.workerProgress.reduce((sum, p) => sum + p, 0) / this.workerProgress.length;
 
-    if (this.onProgressCallback && this.combinedStats) {
-      const stats = this.convertToSimulationStats(this.combinedStats);
-      this.onProgressCallback(Math.min(averageProgress, 99), stats);
+    // Only update progress percentage, do NOT pass stats to avoid accumulation bugs
+    // Stats are only combined when workers complete via handleWorkerComplete
+    if (this.onProgressCallback) {
+      const emptyStats: SimulationStats = {
+        totalHands: 0,
+        totalShoes: 0,
+        wins: 0,
+        losses: 0,
+        pushes: 0,
+        blackjacks: 0,
+        surrenders: 0,
+        doubles: 0,
+        splits: 0,
+        netWinnings: 0,
+        winRate: 0,
+        houseEdge: 0,
+        standardDeviation: 0,
+        trueCountFrequency: {},
+        trueCountStats: {},
+      };
+      this.onProgressCallback(Math.min(averageProgress, 99), emptyStats);
     }
   }
 
   private handleWorkerComplete(partialStats: PartialStats, workerId: number): void {
+    console.log(`✅ Worker ${workerId} completed:`);
+    console.log(`   - Total shoes: ${partialStats.totalShoes}`);
+    console.log(`   - Total hands: ${partialStats.totalHands}`);
+    console.log(`   - Completed workers: ${this.completedWorkers + 1}`);
+    
     this.combineStats(partialStats, workerId);
     this.completedWorkers++;
     this.activeWorkers--;
@@ -213,6 +247,14 @@ export class MultiThreadedSimulator {
     if (!this.combinedStats) {
       throw new Error('No stats to finalize');
     }
+
+    console.log('╔═══════════════════════════════════════════════════════════════╗');
+    console.log('║      MULTI-THREADED SIMULATION COMPLETE                       ║');
+    console.log('╠═══════════════════════════════════════════════════════════════╣');
+    console.log('║ Combined total shoes:', this.combinedStats.totalShoes);
+    console.log('║ Combined total hands:', this.combinedStats.totalHands);
+    console.log('║ Completed workers:', this.completedWorkers);
+    console.log('╚═══════════════════════════════════════════════════════════════╝');
 
     return this.convertToSimulationStats(this.combinedStats);
   }
