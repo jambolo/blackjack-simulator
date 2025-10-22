@@ -137,7 +137,7 @@ export class BlackjackGame {
   }
 
   playHand(): GameResult {
-    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount) || this.deck.getRemainingCards() < 10) {
+    if (this.deck.needsNewShoe(this.rules.penetration, this.rules.deckCount)) {
       this.stats.totalShoes++;
       this.deck.reset(this.rules.deckCount);
       this.cardCounter.reset(this.rules.deckCount);
@@ -150,12 +150,6 @@ export class BlackjackGame {
       this.stats.trueCountFrequency[trueCountAtStart]++;
     } else {
       this.stats.trueCountFrequency[trueCountAtStart] = 1;
-    }
-
-    if (this.deck.getRemainingCards() < 4) {
-      this.stats.totalShoes++;
-      this.deck.reset(this.rules.deckCount);
-      this.cardCounter.reset(this.rules.deckCount);
     }
 
     try {
