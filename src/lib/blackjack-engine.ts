@@ -45,7 +45,7 @@ export class Deck {
   }
 
   needsNewShoe(penetration: number, totalDecks: number): boolean {
-    const cutCardPosition = Math.floor((totalDecks * 52) - (penetration * 52));
+    const cutCardPosition = Math.floor((totalDecks * 52) * (1 - penetration));
     return this.cards.length <= cutCardPosition;
   }
 
