@@ -8,7 +8,7 @@ A browser-first, Vite + React web app that runs large-scale simulations of the c
 - Flexible rule configuration: decks, penetration (shuffle frequency), dealer S17/H17, payouts, surrender, DAS, resplitting, etc.
 - Strategy support: built-in basic strategy plus pluggable TypeScript strategies and counting agents.
 - Card-counting analysis (High–Low): running count, true count, betting spreads, EV by true-count bin, variance, betting correlation.
-- Exportable results (CSV/JSON) for offline analysis and research.
+- Exportable results (JSON) for offline analysis and research.
 
 ## Tech stack
 - Vite, React, TypeScript
