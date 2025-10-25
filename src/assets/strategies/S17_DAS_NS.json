@@ -1,7 +1,7 @@
 {
   "meta": {
-    "decks": "4-8",
-    "style": "American",
+    "decks": [4,8],
+    "peek_style": "American",
     "dealer_stands_on_soft_17": true,
     "double_after_split_allowed": true,
     "surrender_allowed": false
