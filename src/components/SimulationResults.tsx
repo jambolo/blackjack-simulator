@@ -1,14 +1,18 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SimulationStats } from "@/lib/types";
 import { TrueCountWinRates } from "@/components/TrueCountWinRates";
-import { TrendUp, TrendDown, Minus, Trophy } from "@phosphor-icons/react";
+import { TrendUp, TrendDown, Trophy, Download } from "@phosphor-icons/react";
+import { toast } from "sonner";
 
 interface SimulationResultsProps {
   stats: SimulationStats;
+  rules?: any;
+  simulationConfig?: any;
 }
 
-export function SimulationResults({ stats }: SimulationResultsProps) {
+export function SimulationResults({ stats, rules, simulationConfig }: SimulationResultsProps) {
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat().format(num);
   };
@@ -31,6 +35,28 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
     return `${sign}$${Math.abs(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const handleExportJSON = () => {
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      rules: rules || null,
+      simulationConfig: simulationConfig || null,
+      results: stats,
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `blackjack-simulation-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Results exported successfully');
+  };
+
   const winRate = stats.winRate;
   const lossRate = ((stats.losses / (stats.wins + stats.losses)) * 100) || 0;
   const pushRate = ((stats.pushes / stats.totalHands) * 100) || 0;
@@ -44,10 +70,21 @@ export function SimulationResults({ stats }: SimulationResultsProps) {
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-        <Trophy className="h-6 w-6 text-accent" />
-        Simulation Results (Flat Betting $1)
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Trophy className="h-6 w-6 text-accent" />
+          Simulation Results (Flat Betting $1)
+        </h2>
+        <Button
+          onClick={handleExportJSON}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Export JSON
+        </Button>
+      </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">

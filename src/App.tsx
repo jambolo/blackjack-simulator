@@ -173,7 +173,11 @@ function App() {
               totalHands={finalStats.totalHands}
               isMultiThreaded={true}
             />
-            <SimulationResults stats={finalStats} />
+            <SimulationResults 
+              stats={finalStats} 
+              rules={rules || DEFAULT_RULES}
+              simulationConfig={simulationConfig || DEFAULT_SIMULATION_CONFIG}
+            />
             <BettingReturns trueCountStats={finalStats.trueCountStats} />
           </div>
         )}
