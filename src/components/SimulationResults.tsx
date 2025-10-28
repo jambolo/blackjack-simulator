@@ -1,14 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SimulationStats } from "@/lib/types";
+import { SimulationStats, BlackjackRules } from "@/lib/types";
 import { TrueCountWinRates } from "@/components/TrueCountWinRates";
 import { TrendUp, TrendDown, Trophy, Download } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { getStrategyData } from "@/lib/strategy-registry";
 
 interface SimulationResultsProps {
   stats: SimulationStats;
-  rules?: any;
+  rules?: BlackjackRules;
   simulationConfig?: any;
 }
 
@@ -35,9 +36,12 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
     return `${sign}$${Math.abs(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const strategyName = rules ? getStrategyData(rules).name : 'Unknown Strategy';
+
   const handleExportJSON = () => {
     const exportData = {
       exportDate: new Date().toISOString(),
+      strategy: strategyName,
       rules: rules || null,
       simulationConfig: simulationConfig || null,
       results: stats,
@@ -70,7 +74,7 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Trophy className="h-6 w-6 text-accent" />
           Simulation Results (Flat Betting $1)
@@ -84,6 +88,12 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
           <Download className="h-4 w-4" />
           Export JSON
         </Button>
+      </div>
+
+      <div className="mb-6 p-3 bg-muted/50 rounded-md">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Strategy Used:</span> {strategyName}
+        </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">

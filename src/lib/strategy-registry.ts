@@ -11,8 +11,8 @@ import S17_DAS_NS from '@/assets/strategies/S17_DAS_NS.json';
 // Strategy file format from the JSON files
 interface StrategyFile {
   meta: {
-    decks: string;
-    style: string;
+    decks: number[];
+    peek_style: string;
     dealer_stands_on_soft_17: boolean;
     double_after_split_allowed: boolean;
     surrender_allowed: boolean;
