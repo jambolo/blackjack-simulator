@@ -1,4 +1,16 @@
-import { Card } from "@/components/ui/card";
+import {
+  Box,
+  Card,
+  CardContent,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 import { TrueCountStats } from "@/lib/types";
 
 interface BettingReturnsProps {
@@ -7,7 +19,7 @@ interface BettingReturnsProps {
 
 export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
   const safeStats = trueCountStats || {};
-  
+
   const allData = Object.entries(safeStats)
     .map(([count, stats]) => ({
       trueCount: parseInt(count),
@@ -21,82 +33,93 @@ export function BettingReturns({ trueCountStats }: BettingReturnsProps) {
 
   const totalReturns = allData.reduce((sum, item) => sum + item.totalReturns, 0);
   const totalHands = allData.reduce((sum, item) => sum + item.hands, 0);
+  const avgReturnPerHand = totalHands > 0 ? totalReturns / totalHands : 0;
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Betting Returns by True Count</h3>
-        <div className="text-sm text-muted-foreground mb-4">
-          <p>Simulated betting returns using card counting strategy</p>
-          <div className="mt-2 bg-muted p-3 rounded-lg space-y-1 text-xs">
-            <div className="font-semibold">Betting Strategy:</div>
-            <div>• True Count ≤ -3: Bet = 0 (no play)</div>
-            <div>• True Count -2, -1, 0: Bet = 0.5 units</div>
-            <div>• True Count ≥ 1: Bet = True Count units</div>
-            <div>• True Count ≥ 5: Bet = 8 units</div>
-          </div>
-        </div>
+    <Card variant="outlined">
+      <CardContent>
+        <Typography variant="h6" sx={{ mb: 1 }}>Betting Returns by True Count</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Simulated betting returns using card counting strategy.
+        </Typography>
+        <Box sx={{ mt: 1, p: 1.5, borderRadius: 1, bgcolor: "grey.100" }}>
+          <Typography variant="subtitle2">Betting Strategy</Typography>
+          <Typography variant="caption" display="block">True Count ≤ -3: Bet = 0 (no play)</Typography>
+          <Typography variant="caption" display="block">True Count -2, -1, 0: Bet = 0.5 units</Typography>
+          <Typography variant="caption" display="block">True Count ≥ 1: Bet = True Count units</Typography>
+          <Typography variant="caption" display="block">True Count ≥ 5: Bet = 8 units</Typography>
+        </Box>
 
-        <div className="bg-primary/10 p-4 rounded-lg mb-4 grid grid-cols-2 gap-4">
-          <div>
-            <div className="text-sm text-muted-foreground">Total Returns</div>
-            <div className={`text-2xl font-bold ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
+        <Box
+          sx={{
+            mt: 2,
+            mb: 3,
+            p: 2,
+            borderRadius: 1,
+            bgcolor: "rgba(31,122,77,0.08)",
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          }}
+        >
+          <Box>
+            <Typography variant="body2" color="text.secondary">Total Returns</Typography>
+            <Typography variant="h5" fontWeight={700} color={totalReturns >= 0 ? "success.main" : "error.main"}>
               {totalReturns >= 0 ? '+' : ''}{totalReturns.toFixed(2)} units
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Avg. Return per Hand</div>
-            <div className={`text-2xl font-bold ${totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}>
-              {totalReturns >= 0 ? '+' : ''}{(totalReturns/totalHands).toFixed(3)} units
-            </div>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="body2" color="text.secondary">Avg Return per Hand</Typography>
+            <Typography variant="h5" fontWeight={700} color={avgReturnPerHand >= 0 ? "success.main" : "error.main"}>
+              {avgReturnPerHand >= 0 ? '+' : ''}{avgReturnPerHand.toFixed(3)} units
+            </Typography>
+          </Box>
+        </Box>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2 px-2"></th>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell></TableCell>
               {allData.map((item) => (
-                <th key={item.trueCount} className="text-right py-2 px-2 font-medium">
+                <TableCell key={item.trueCount} align="right" sx={{ fontWeight: 600 }}>
                   {item.trueCount}
-                </th>
+                </TableCell>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-border/50 hover:bg-muted/50">
-              <td className="py-2 px-2 font-medium">Bet Size</td>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Bet Size</TableCell>
               {allData.map((item) => (
-                <td key={item.trueCount} className="text-right py-2 px-2">
+                <TableCell key={item.trueCount} align="right">
                   {item.betAmount.toFixed(1)}
-                </td>
+                </TableCell>
               ))}
-            </tr>
-            <tr className="border-b border-border/50 hover:bg-muted/50">
-              <td className="py-2 px-2 font-medium">Total Returns</td>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Total Returns</TableCell>
               {allData.map((item) => (
-                <td 
-                  key={item.trueCount} 
-                  className={`text-right py-2 px-2 font-medium ${item.totalReturns >= 0 ? 'text-primary' : 'text-destructive'}`}
+                <TableCell
+                  key={item.trueCount}
+                  align="right"
+                  sx={{ color: item.totalReturns >= 0 ? "success.main" : "error.main", fontWeight: 600 }}
                 >
                   {item.totalReturns >= 0 ? '+' : ''}{item.totalReturns.toFixed(2)}
-                </td>
+                </TableCell>
               ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      {allData.length === 0 && (
-        <div className="h-32 flex items-center justify-center text-muted-foreground">
-          <div className="text-center">
-            <div className="text-lg font-medium mb-2">No Data Available</div>
-            <div className="text-sm">Run a simulation to see betting returns by true count</div>
-          </div>
-        </div>
-      )}
+        {allData.length === 0 && (
+          <Box sx={{ py: 6, textAlign: "center", color: "text.secondary" }}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>No Data Available</Typography>
+            <Typography variant="body2">Run a simulation to see betting returns by true count.</Typography>
+          </Box>
+        )}
+      </CardContent>
     </Card>
   );
 }

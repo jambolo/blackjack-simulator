@@ -1,5 +1,4 @@
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Stack, TextField, Typography } from "@mui/material";
 import { SimulationConfig, DEFAULT_SIMULATION_CONFIG } from "@/lib/types";
 
 interface SimulationConfigurationProps {
@@ -13,27 +12,23 @@ export function SimulationConfiguration({ simulationConfig, onSimulationConfigCh
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="shoe-count">Number of Shoes to Simulate</Label>
-        <Input
+    <Stack spacing={1.5}>
+      <TextField
           id="shoe-count"
+          label="Number of Shoes to Simulate"
           type="number"
-          min="1"
-          max="100000000"
-          step="1"
+          inputProps={{ min: 1, max: 100000000, step: 1 }}
           value={simulationConfig.shoeCount}
           onChange={(e) => {
             const value = parseInt(e.target.value) || DEFAULT_SIMULATION_CONFIG.shoeCount;
             const clampedValue = Math.max(1, Math.min(100000000, value));
             updateSimulationConfig('shoeCount', clampedValue);
           }}
-          className="font-mono"
+          fullWidth
         />
-        <p className="text-xs text-muted-foreground">
+      <Typography variant="caption" color="text.secondary">
           Range: 1 to 100,000,000 shoes. More shoes provide more accurate results but take longer to run.
-        </p>
-      </div>
-    </div>
+      </Typography>
+    </Stack>
   );
 }

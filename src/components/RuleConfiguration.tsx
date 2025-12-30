@@ -1,9 +1,19 @@
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import SettingsIcon from "@mui/icons-material/Settings";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Switch,
+  Typography,
+} from "@mui/material";
 import { BlackjackRules, VALID_PENETRATIONS, DEFAULT_RULES } from "@/lib/types";
-import { Gear } from "@phosphor-icons/react";
 
 interface RuleConfigurationProps {
   rules: BlackjackRules;
@@ -13,7 +23,7 @@ interface RuleConfigurationProps {
 export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationProps) {
   const updateRule = <K extends keyof BlackjackRules>(key: K, value: BlackjackRules[K]) => {
     const newRules = { ...rules, [key]: value };
-    
+
     // Auto-adjust penetration if deck count changes
     if (key === 'deckCount') {
       const validPenetrations = VALID_PENETRATIONS[value as BlackjackRules['deckCount']];
@@ -21,7 +31,7 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
         newRules.penetration = validPenetrations[validPenetrations.length - 1] as 0.5 | 1 | 1.5 | 2;
       }
     }
-    
+
     onRulesChange(newRules);
   };
 
@@ -32,132 +42,130 @@ export function RuleConfiguration({ rules, onRulesChange }: RuleConfigurationPro
   const validPenetrations = VALID_PENETRATIONS[rules.deckCount];
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Gear className="h-6 w-6 text-primary" />
-          <h2 className="text-xl font-semibold">Game Rules Configuration</h2>
-        </div>
-        <button
-          onClick={resetToDefaults}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+    <Card variant="outlined">
+      <CardContent>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <SettingsIcon color="primary" />
+            <Typography variant="h6">Game Rules Configuration</Typography>
+          </Stack>
+          <Button variant="text" onClick={resetToDefaults}>
+            Reset to Defaults
+          </Button>
+        </Stack>
+
+        <Box
+          sx={{
+            display: "grid",
+            gap: 3,
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          }}
         >
-          Reset to Defaults
-        </button>
-      </div>
+          <Stack spacing={2}>
+            <Typography variant="subtitle1" color="primary">
+              Deck Configuration
+            </Typography>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="font-medium text-primary">Deck Configuration</h3>
-          
-          <div className="space-y-2">
-            <Label htmlFor="deck-count">Number of Decks</Label>
-            <Select
-              value={rules.deckCount.toString()}
-              onValueChange={(value) => updateRule('deckCount', parseInt(value) as 1 | 2 | 6)}
-            >
-              <SelectTrigger id="deck-count">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Single Deck</SelectItem>
-                <SelectItem value="2">Double Deck</SelectItem>
-                <SelectItem value="6">6-Deck Shoe</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <FormControl fullWidth>
+              <InputLabel id="deck-count-label">Number of Decks</InputLabel>
+              <Select
+                labelId="deck-count-label"
+                id="deck-count"
+                value={rules.deckCount}
+                label="Number of Decks"
+                onChange={(event) => updateRule('deckCount', Number(event.target.value) as 1 | 2 | 6)}
+              >
+                <MenuItem value={1}>Single Deck</MenuItem>
+                <MenuItem value={2}>Double Deck</MenuItem>
+                <MenuItem value={6}>6-Deck Shoe</MenuItem>
+              </Select>
+            </FormControl>
 
-          <div className="space-y-2">
-            <Label htmlFor="penetration">Deck Penetration</Label>
-            <Select
-              value={rules.penetration.toString()}
-              onValueChange={(value) => updateRule('penetration', parseFloat(value) as 0.5 | 1 | 1.5 | 2)}
-            >
-              <SelectTrigger id="penetration">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+            <FormControl fullWidth>
+              <InputLabel id="penetration-label">Deck Penetration</InputLabel>
+              <Select
+                labelId="penetration-label"
+                id="penetration"
+                value={rules.penetration}
+                label="Deck Penetration"
+                onChange={(event) => updateRule('penetration', Number(event.target.value) as 0.5 | 1 | 1.5 | 2)}
+              >
                 {validPenetrations.map((penetration) => (
-                  <SelectItem key={penetration} value={penetration.toString()}>
+                  <MenuItem key={penetration} value={penetration}>
                     {penetration === 0.5 ? '1/2 Deck' : `${penetration} Deck${penetration > 1 ? 's' : ''}`}
-                  </SelectItem>
+                  </MenuItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+              </Select>
+            </FormControl>
+          </Stack>
 
-        <div className="space-y-4">
-          <h3 className="font-medium text-primary">Player & Dealer Rules</h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="dealer-soft-17" className="text-sm">
-                Dealer Hits Soft 17
-              </Label>
-              <Switch
-                id="dealer-soft-17"
-                checked={rules.dealerHitsSoft17}
-                onCheckedChange={(checked) => updateRule('dealerHitsSoft17', checked)}
-              />
-            </div>
+          <Stack spacing={1}>
+            <Typography variant="subtitle1" color="primary">
+              Player and Dealer Rules
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  id="dealer-soft-17"
+                  checked={rules.dealerHitsSoft17}
+                  onChange={(_, checked) => updateRule('dealerHitsSoft17', checked)}
+                />
+              }
+              label="Dealer Hits Soft 17"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="double-after-split"
+                  checked={rules.doubleAfterSplit}
+                  onChange={(_, checked) => updateRule('doubleAfterSplit', checked)}
+                />
+              }
+              label="Double After Split (DAS)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="resplit-aces"
+                  checked={rules.resplitAces}
+                  onChange={(_, checked) => updateRule('resplitAces', checked)}
+                />
+              }
+              label="Resplit Aces (RSA)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="hit-split-aces"
+                  checked={rules.hitAfterSplitAces}
+                  onChange={(_, checked) => updateRule('hitAfterSplitAces', checked)}
+                />
+              }
+              label="Hit After Split Aces (HSA)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="late-surrender"
+                  checked={rules.lateSurrender}
+                  onChange={(_, checked) => updateRule('lateSurrender', checked)}
+                />
+              }
+              label="Late Surrender (LS)"
+            />
+          </Stack>
+        </Box>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="double-after-split" className="text-sm">
-                Double After Split (DAS)
-              </Label>
-              <Switch
-                id="double-after-split"
-                checked={rules.doubleAfterSplit}
-                onCheckedChange={(checked) => updateRule('doubleAfterSplit', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="resplit-aces" className="text-sm">
-                Resplit Aces (RSA)
-              </Label>
-              <Switch
-                id="resplit-aces"
-                checked={rules.resplitAces}
-                onCheckedChange={(checked) => updateRule('resplitAces', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="hit-split-aces" className="text-sm">
-                Hit After Split Aces (HSA)
-              </Label>
-              <Switch
-                id="hit-split-aces"
-                checked={rules.hitAfterSplitAces}
-                onCheckedChange={(checked) => updateRule('hitAfterSplitAces', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="late-surrender" className="text-sm">
-                Late Surrender (LS)
-              </Label>
-              <Switch
-                id="late-surrender"
-                checked={rules.lateSurrender}
-                onCheckedChange={(checked) => updateRule('lateSurrender', checked)}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 md:col-span-2">
-          <h3 className="font-medium text-primary">Rule Summary</h3>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>• Dealer checks for blackjack (American style)</p>
-            <p>• Split up to 4 hands</p>
-            <p>• Double on any first two cards</p>
-            <p>• Blackjack pays 3:2</p>
-          </div>
-        </div>
-      </div>
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" color="primary" sx={{ mb: 1 }}>
+            Rule Summary
+          </Typography>
+          <Typography variant="body2" color="text.secondary">Dealer checks for blackjack (American style)</Typography>
+          <Typography variant="body2" color="text.secondary">Split up to 4 hands</Typography>
+          <Typography variant="body2" color="text.secondary">Double on any first two cards</Typography>
+          <Typography variant="body2" color="text.secondary">Blackjack pays 3:2</Typography>
+        </Box>
+      </CardContent>
     </Card>
   );
 }

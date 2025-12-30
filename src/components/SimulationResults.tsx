@@ -1,21 +1,70 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Box, Button, Card, CardContent, Paper, Tab, Tabs, Typography } from "@mui/material";
 import { SimulationStats, BlackjackRules } from "@/lib/types";
-import { lazy, Suspense } from "react";
+import { lazy, ReactNode, Suspense, useState } from "react";
 import { TrendUp, TrendDown, Trophy, Download } from "@phosphor-icons/react";
-import { toast } from "sonner";
 import { getStrategyData } from "@/lib/strategy-registry";
 
 const TrueCountWinRates = lazy(() => import("@/components/TrueCountWinRates").then(m => ({ default: m.TrueCountWinRates })));
 
+function TabPanel({ value, index, children }: { value: number; index: number; children: ReactNode }) {
+  if (value !== index) return null;
+  return <Box sx={{ pt: 3 }}>{children}</Box>;
+}
+
+function StatPanel({
+  title,
+  value,
+  isPositive,
+}: {
+  title: string;
+  value: string;
+  isPositive: boolean;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box>
+          <Typography variant="body2" color="text.secondary">{title}</Typography>
+          <Typography variant="h5" fontWeight={700} color={isPositive ? "success.main" : "error.main"}>
+            {value}
+          </Typography>
+        </Box>
+        {isPositive ? <TrendUp size={28} color="#2e7d32" /> : <TrendDown size={28} color="#d32f2f" />}
+      </Box>
+    </Paper>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  percent,
+  color,
+}: {
+  label: string;
+  value: string;
+  percent: string;
+  color: string;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: 2, textAlign: "center", borderColor: color }}>
+      <Typography variant="h5" fontWeight={700} sx={{ color }}>{value}</Typography>
+      <Typography variant="body2" sx={{ color }}>{label}</Typography>
+      <Typography variant="caption" sx={{ color }}>{percent}</Typography>
+    </Paper>
+  );
+}
+
 interface SimulationResultsProps {
   stats: SimulationStats;
   rules?: BlackjackRules;
-  simulationConfig?: any;
+  simulationConfig?: unknown;
+  onNotify?: (message: string, severity: "success" | "info" | "error") => void;
 }
 
-export function SimulationResults({ stats, rules, simulationConfig }: SimulationResultsProps) {
+export function SimulationResults({ stats, rules, simulationConfig, onNotify }: SimulationResultsProps) {
+  const [tab, setTab] = useState(0);
+
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat().format(num);
   };
@@ -59,8 +108,10 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    toast.success('Results exported successfully');
+
+    if (onNotify) {
+      onNotify('Results exported successfully', 'success');
+    }
   };
 
   const winRate = stats.winRate;
@@ -73,211 +124,116 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
 
   const avgHandsPerShoe = stats.totalShoes > 0 ? stats.totalHands / stats.totalShoes : 0;
   const avgWinPerHand = stats.totalHands > 0 ? stats.netWinnings / stats.totalHands : 0;
+  const hitStandHands = stats.totalHands - stats.doubles - stats.splits - stats.surrenders;
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-accent" />
+    <Card variant="outlined">
+      <CardContent>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="h6" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Trophy size={24} />
           Simulation Results (Flat Betting $1)
-        </h2>
+        </Typography>
         <Button
           onClick={handleExportJSON}
-          variant="outline"
-          size="sm"
-          className="gap-2"
+          variant="outlined"
+          size="small"
+          startIcon={<Download size={16} />}
         >
-          <Download className="h-4 w-4" />
           Export JSON
         </Button>
-      </div>
+      </Box>
 
-      <div className="mb-6 p-3 bg-muted/50 rounded-md">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Strategy Used:</span> {strategyName}
-        </p>
-      </div>
+      <Box sx={{ mb: 2, p: 1.5, borderRadius: 1, bgcolor: "grey.100" }}>
+        <Typography variant="body2" color="text.secondary">
+          <Box component="span" sx={{ fontWeight: 700, color: "text.primary" }}>Strategy Used:</Box> {strategyName}
+        </Typography>
+      </Box>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="outcomes">Hand Outcomes</TabsTrigger>
-          <TabsTrigger value="actions">Player Actions</TabsTrigger>
-          <TabsTrigger value="counting">Card Counting</TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="fullWidth">
+        <Tab label="Overview" />
+        <Tab label="Hand Outcomes" />
+        <Tab label="Player Actions" />
+        <Tab label="Card Counting" />
+      </Tabs>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-card p-4 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">House Edge</p>
-                  <p className={`text-2xl font-bold ${stats.houseEdge <= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatPercent(stats.houseEdge)}
-                  </p>
-                </div>
-                {stats.houseEdge <= 0 ? (
-                  <TrendUp className="h-8 w-8 text-green-600" />
-                ) : (
-                  <TrendDown className="h-8 w-8 text-red-600" />
-                )}
-              </div>
-            </div>
+      <TabPanel value={tab} index={0}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr", lg: "repeat(4, 1fr)" },
+            mb: 3,
+          }}
+        >
+          <StatPanel title="House Edge" value={formatPercent(stats.houseEdge)} isPositive={stats.houseEdge <= 0} />
+          <StatPanel title="Net Winnings" value={formatNetWinnings(stats.netWinnings)} isPositive={stats.netWinnings >= 0} />
+          <StatPanel title="Win Rate" value={formatPercent(winRate)} isPositive={winRate >= 45} />
+          <StatPanel title="Avg Win/Hand" value={formatCurrency(avgWinPerHand, 4)} isPositive={avgWinPerHand >= 0} />
+        </Box>
 
-            <div className="bg-card p-4 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Net Winnings</p>
-                  <p className={`text-2xl font-bold ${stats.netWinnings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatNetWinnings(stats.netWinnings)}
-                  </p>
-                </div>
-                {stats.netWinnings >= 0 ? (
-                  <TrendUp className="h-8 w-8 text-green-600" />
-                ) : (
-                  <TrendDown className="h-8 w-8 text-red-600" />
-                )}
-              </div>
-            </div>
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>Game Statistics</Typography>
+        <Box sx={{ display: "grid", gap: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" color="text.secondary">Total Hands Played:</Typography>
+            <Typography variant="body2" fontWeight={600}>{formatNumber(stats.totalHands)}</Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" color="text.secondary">Shoes Completed:</Typography>
+            <Typography variant="body2" fontWeight={600}>{formatNumber(stats.totalShoes)}</Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" color="text.secondary">Avg Hands per Shoe:</Typography>
+            <Typography variant="body2" fontWeight={600}>{avgHandsPerShoe.toFixed(1)}</Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" color="text.secondary">Standard Deviation (Winnings):</Typography>
+            <Typography variant="body2" fontWeight={600}>{stats.standardDeviation.toFixed(2)}</Typography>
+          </Box>
+        </Box>
+      </TabPanel>
 
-            <div className="bg-card p-4 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Win Rate</p>
-                  <p className={`text-2xl font-bold ${winRate >= 45 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatPercent(winRate)}
-                  </p>
-                </div>
-                {winRate >= 45 ? (
-                  <TrendUp className="h-8 w-8 text-green-600" />
-                ) : (
-                  <TrendDown className="h-8 w-8 text-red-600" />
-                )}
-              </div>
-            </div>
+      <TabPanel value={tab} index={1}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+          }}
+        >
+          <MetricCard label="Wins" value={formatNumber(stats.wins)} percent={formatPercent(winRate)} color="#2e7d32" />
+          <MetricCard label="Losses" value={formatNumber(stats.losses)} percent={formatPercent(lossRate)} color="#d32f2f" />
+          <MetricCard label="Pushes" value={formatNumber(stats.pushes)} percent={formatPercent(pushRate)} color="#546e7a" />
+          <MetricCard label="Blackjacks" value={formatNumber(stats.blackjacks)} percent={formatPercent(blackjackRate)} color="#b88a2a" />
+        </Box>
+      </TabPanel>
 
-            <div className="bg-card p-4 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg Win/Hand</p>
-                  <p className={`text-2xl font-bold ${avgWinPerHand >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(avgWinPerHand, 4)}
-                  </p>
-                </div>
-                {avgWinPerHand >= 0 ? (
-                  <TrendUp className="h-8 w-8 text-green-600" />
-                ) : (
-                  <TrendDown className="h-8 w-8 text-red-600" />
-                )}
-              </div>
-            </div>
-          </div>
+      <TabPanel value={tab} index={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+          }}
+        >
+          <MetricCard label="Doubles" value={formatNumber(stats.doubles)} percent={formatPercent(doubleRate)} color="#1565c0" />
+          <MetricCard label="Splits" value={formatNumber(stats.splits)} percent={formatPercent(splitRate)} color="#6a1b9a" />
+          <MetricCard label="Surrenders" value={formatNumber(stats.surrenders)} percent={formatPercent(surrenderRate)} color="#ef6c00" />
+          <MetricCard
+            label="Hit/Stand"
+            value={formatNumber(hitStandHands)}
+            percent={formatPercent((hitStandHands / Math.max(stats.totalHands, 1)) * 100)}
+            color="#455a64"
+          />
+        </Box>
+      </TabPanel>
 
-          <div className="space-y-4">
-            <h3 className="font-medium">Game Statistics</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Hands Played:</span>
-                <span className="font-medium">{formatNumber(stats.totalHands)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Shoes Completed:</span>
-                <span className="font-medium">{formatNumber(stats.totalShoes)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Avg Hands per Shoe:</span>
-                <span className="font-medium">{avgHandsPerShoe.toFixed(1)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Standard Deviation (Winnings):</span>
-                <span className="font-medium">{stats.standardDeviation.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="outcomes" className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-700">{formatNumber(stats.wins)}</div>
-                <div className="text-sm text-green-600 font-medium">Wins</div>
-                <div className="text-xs text-green-600">{formatPercent(winRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-700">{formatNumber(stats.losses)}</div>
-                <div className="text-sm text-red-600 font-medium">Losses</div>
-                <div className="text-xs text-red-600">{formatPercent(lossRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-700">{formatNumber(stats.pushes)}</div>
-                <div className="text-sm text-gray-600 font-medium">Pushes</div>
-                <div className="text-xs text-gray-600">{formatPercent(pushRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-700">{formatNumber(stats.blackjacks)}</div>
-                <div className="text-sm text-yellow-600 font-medium">Blackjacks</div>
-                <div className="text-xs text-yellow-600">{formatPercent(blackjackRate)}</div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="actions" className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-700">{formatNumber(stats.doubles)}</div>
-                <div className="text-sm text-blue-600 font-medium">Doubles</div>
-                <div className="text-xs text-blue-600">{formatPercent(doubleRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-700">{formatNumber(stats.splits)}</div>
-                <div className="text-sm text-purple-600 font-medium">Splits</div>
-                <div className="text-xs text-purple-600">{formatPercent(splitRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-700">{formatNumber(stats.surrenders)}</div>
-                <div className="text-sm text-orange-600 font-medium">Surrenders</div>
-                <div className="text-xs text-orange-600">{formatPercent(surrenderRate)}</div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-700">
-                  {formatNumber(stats.totalHands - stats.doubles - stats.splits - stats.surrenders)}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Hit/Stand</div>
-                <div className="text-xs text-gray-600">
-                  {formatPercent(((stats.totalHands - stats.doubles - stats.splits - stats.surrenders) / stats.totalHands) * 100)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="counting" className="space-y-6">
-          <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading chart...</div>}>
+      <TabPanel value={tab} index={3}>
+          <Suspense fallback={<Box sx={{ height: 256, display: "flex", alignItems: "center", justifyContent: "center" }}><Typography>Loading chart...</Typography></Box>}>
             <TrueCountWinRates trueCountStats={stats.trueCountStats || {}} />
           </Suspense>
-        </TabsContent>
-      </Tabs>
+      </TabPanel>
+      </CardContent>
     </Card>
   );
 }

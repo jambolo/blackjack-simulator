@@ -3,7 +3,7 @@
     {
       "label": "vite: dev",
       "type": "shell",
-      "command": "npm",
+      "command": "pnpm",
       "args": [
         "run",
         "dev"

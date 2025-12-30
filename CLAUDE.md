@@ -39,32 +39,32 @@ Blackjack Simulator is a browser-based Vite + React web app that runs large-scal
 
 **Install dependencies**
 ```bash
-npm install
+pnpm install
 ```
 
 **Start dev server** (Vite default port 5173)
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 **Build for production**
 ```bash
-npm run build
+pnpm run build
 ```
 
 **Lint code**
 ```bash
-npm lint
+pnpm run lint
 ```
 
 **Kill dev server** (if stuck on port 5000)
 ```bash
-npm run kill
+pnpm run kill
 ```
 
 **Optimize Vite** (pre-bundle dependencies)
 ```bash
-npm run optimize
+pnpm run optimize
 ```
 
 ## Architecture
@@ -123,14 +123,11 @@ StrategyManager dynamically loads and caches these based on the current Blackjac
 ### External Dependencies
 
 - **Vite + React 19**: Build and UI framework
-- **TypeScript ~5.7**: Type safety
-- **Tailwind CSS 4 + @tailwindcss/vite**: Styling
-- **Radix UI**: Headless component library (select, dialog, tabs, progress, etc.)
-- **React Hook Form + Zod**: Form validation
-- **Recharts**: Statistical charts (bar, line, pie)
-- **@github/spark**: GitHub design system (custom hooks, icons, Phosphor icons)
-- **react-resizable-panels**: Flexible layout panels
-- **sonner**: Toast notifications
+- **TypeScript 6**: Type safety
+- **Material UI (MUI) + Emotion**: Component system and styling
+- **Recharts 3**: Statistical charts (line and categorical visualizations)
+- **@phosphor-icons/react**: Iconography
+- **react-error-boundary**: Runtime boundary protection
 
 ## Key Patterns
 
@@ -167,10 +164,9 @@ This models a realistic betting spread for counting analysis.
 ## Build Configuration
 
 - **Vite entry**: `index.html` with React root
-- **Chunk splitting** (vite.config.ts): Vendor chunks for React, Radix, forms/validation, and charts
+- **Bundling** (vite.config.ts): default Vite/Rolldown chunking with project alias support
 - **Path alias**: `@/` maps to `src/`
-- **Tailwind 4**: CSS generation via Vite plugin
-- **Spark plugins**: Icon proxy and Spark design system integration (required)
+- **Theme provider**: global MUI ThemeProvider + CssBaseline in `src/main.tsx`
 
 ## Common Development Tasks
 
@@ -204,7 +200,7 @@ This models a realistic betting spread for counting analysis.
 
 ## Notes on the Codebase
 
-- The app uses browser localStorage (via `useKV` from `@github/spark`) to persist rules and simulation config between sessions
+- The app uses browser localStorage (via `useLocalStorage` hook) to persist rules and simulation config between sessions
 - Errors during simulation are caught and shown as toast notifications; the simulation state is cleaned up properly
-- The build output includes vendor chunking to optimize cache busting on dependency updates
-- Spark plugin is required for the app to build; do not remove the `createIconImportProxy` and `sparkPlugin` calls from vite.config.ts
+- The build output is generated with Vite 8 and Rolldown
+- The app no longer depends on GitHub Spark, Radix UI, or Tailwind CSS

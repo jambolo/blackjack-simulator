@@ -1,5 +1,4 @@
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Box, Card, CardContent, LinearProgress, Stack, Typography } from "@mui/material";
 import { SimulationStats } from "@/lib/types";
 
 interface SimulationProgressProps {
@@ -25,60 +24,69 @@ export function SimulationProgress({ progress, isRunning, currentStats }: Simula
   };
 
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-lg">
+    <Card variant="outlined">
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h6">
           {isRunning ? 'Simulation Running...' : 'Simulation Complete'}
-        </h3>
-        <span className="text-sm text-muted-foreground">
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
           {formatPercent(progress)}
-        </span>
-      </div>
+          </Typography>
+        </Stack>
 
-      <Progress value={progress} className="w-full" />
+        <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 2 }} />
 
-      {currentStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+        {currentStats && (
+          <Box
+            sx={{
+              mt: 3,
+              pt: 2,
+              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+            }}
+          >
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h5" color="primary" fontWeight={700}>
               {formatNumber(currentStats.totalHands)}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Hands</div>
-          </div>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Total Hands</Typography>
+            </Box>
 
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h5" color="primary" fontWeight={700}>
               {formatNumber(currentStats.totalShoes)}
-            </div>
-            <div className="text-sm text-muted-foreground">Shoes Played</div>
-          </div>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Shoes Played</Typography>
+            </Box>
 
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${currentStats.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h5" fontWeight={700} color={currentStats.winRate >= 50 ? "success.main" : "error.main"}>
               {formatPercent(currentStats.winRate)}
-            </div>
-            <div className="text-sm text-muted-foreground">Win Rate</div>
-          </div>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Win Rate</Typography>
+            </Box>
 
-          <div className="text-center">
-            <div className={`text-2xl font-bold ${currentStats.netWinnings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h5" fontWeight={700} color={currentStats.netWinnings >= 0 ? "success.main" : "error.main"}>
               {formatCurrency(currentStats.netWinnings)}
-            </div>
-            <div className="text-sm text-muted-foreground">Net Winnings</div>
-          </div>
-        </div>
-      )}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Net Winnings</Typography>
+            </Box>
+          </Box>
+        )}
 
-      {isRunning && (
-        <div className="text-center text-sm text-muted-foreground space-y-1">
-          <div>Running optimal basic strategy simulation...</div>
-          <div className="flex items-center justify-center gap-2 text-xs">
-            <span>⚡ Multi-threaded processing</span>
-            <span>•</span>
-            <span>{navigator.hardwareConcurrency || 4} CPU cores</span>
-          </div>
-        </div>
-      )}
+        {isRunning && (
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Typography variant="body2" color="text.secondary">Running optimal basic strategy simulation...</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Multi-threaded processing on {navigator.hardwareConcurrency || 4} CPU cores
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
     </Card>
   );
 }

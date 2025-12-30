@@ -1,5 +1,4 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 import { Timer, Lightning, Cpu } from "@phosphor-icons/react";
 
 interface PerformanceStatsProps {
@@ -17,43 +16,51 @@ export function PerformanceStats({ startTime, endTime, totalHands, isMultiThread
   const estimatedSpeedup = isMultiThreaded ? navigator.hardwareConcurrency || 4 : 1;
 
   return (
-    <Card className="p-4 bg-gradient-to-r from-accent/10 to-primary/10 border-accent/20">
-      <div className="flex items-center gap-2 mb-3">
-        <Lightning className="h-5 w-5 text-accent" />
-        <h4 className="font-semibold text-foreground">Performance Metrics</h4>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Timer className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Duration</span>
-          </div>
-          <div className="text-lg font-bold text-primary">
+    <Card variant="outlined" sx={{ background: "linear-gradient(90deg, rgba(31,122,77,0.08) 0%, rgba(184,138,42,0.12) 100%)" }}>
+      <CardContent>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <Lightning size={20} />
+          <Typography variant="h6">Performance Metrics</Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.75, mb: 0.5 }}>
+              <Timer size={16} />
+              <Typography variant="body2" color="text.secondary">Duration</Typography>
+            </Box>
+            <Typography variant="h6" color="primary" fontWeight={700}>
             {durationSeconds.toFixed(1)}s
-          </div>
-        </div>
-        
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Lightning className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Hands/Second</span>
-          </div>
-          <div className="text-lg font-bold text-accent">
+            </Typography>
+          </Box>
+
+          <Box sx={{ textAlign: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.75, mb: 0.5 }}>
+              <Lightning size={16} />
+              <Typography variant="body2" color="text.secondary">Hands/Second</Typography>
+            </Box>
+            <Typography variant="h6" color="secondary" fontWeight={700}>
             {handsPerSecond.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-          </div>
-        </div>
-        
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Cpu className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">CPU Cores</span>
-          </div>
-          <div className="text-lg font-bold text-primary">
+            </Typography>
+          </Box>
+
+          <Box sx={{ textAlign: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.75, mb: 0.5 }}>
+              <Cpu size={16} />
+              <Typography variant="body2" color="text.secondary">CPU Cores</Typography>
+            </Box>
+            <Typography variant="h6" color="primary" fontWeight={700}>
             {estimatedSpeedup}
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+        </Box>
+      </CardContent>
     </Card>
   );
 }

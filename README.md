@@ -12,27 +12,27 @@ A browser-first, Vite + React web app that runs large-scale simulations of the c
 
 ## Tech stack
 - Vite, React, TypeScript
-- Tailwind CSS for styling
+- Material UI (MUI) + Emotion for UI and styling
 - Frontend-only simulation core (can be adapted to run headless by reusing core modules)
 
 ## Browser Quick Start (dev & build)
-Note: npm commands below are examples. If package.json is present, replace with actual scripts.
+Note: This project uses pnpm.
 
 1. Install
 ```bash
-npm install
+pnpm install
 ```
 
 2. Start dev server
 ```bash
-npm run dev
+pnpm run dev
 # open the URL printed by Vite (usually http://localhost:5173)
 ```
 
 3. Build for production
 ```bash
-npm run build
-# serve the build via: npm run start (if configured) or `npx serve dist`
+pnpm run build
+# serve the build via: pnpm run preview
 ```
 
 ## Usage (configure and run simulations in the browser UI)
@@ -63,7 +63,7 @@ Why this matters:
 
 - meta (object)
   - decks: [min, max] — two-number array indicating the minimum and maximum number of decks the strategy applies to.
-  - peek_style: string — describes when the dealer checks for blackjack (e.g. "American").  
+  - peek_style: string — describes when the dealer checks for blackjack (e.g. "American").
   - dealer_stands_on_soft_17: boolean — true if dealer stands on soft 17 (S17), false for H17.
   - double_after_split_allowed: boolean
   - surrender_allowed: boolean
@@ -95,12 +95,11 @@ Why this matters:
 - Files following this format are located under src/assets/strategies and are consumed by the simulator to drive decision logic.
 
 ## Development notes
-- Typical npm scripts (examples — replace with actual package.json scripts if present):
-  - npm run dev — start Vite dev server
-  - npm run build — build production bundle
-  - npm run start — serve built assets
-  - npm run test — run unit tests
-  - npm run lint — run linters
+- Typical pnpm scripts:
+  - pnpm run dev — start Vite dev server
+  - pnpm run build — build production bundle
+  - pnpm run preview — serve built assets locally
+  - pnpm run lint — run linters
 - Source location: src/ (TypeScript, React components, simulation core, strategies)
 
 ## Testing & validation guidance
