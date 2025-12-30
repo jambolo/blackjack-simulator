@@ -2,10 +2,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SimulationStats, BlackjackRules } from "@/lib/types";
-import { TrueCountWinRates } from "@/components/TrueCountWinRates";
+import { lazy, Suspense } from "react";
 import { TrendUp, TrendDown, Trophy, Download } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { getStrategyData } from "@/lib/strategy-registry";
+
+const TrueCountWinRates = lazy(() => import("@/components/TrueCountWinRates").then(m => ({ default: m.TrueCountWinRates })));
 
 interface SimulationResultsProps {
   stats: SimulationStats;
@@ -271,7 +273,9 @@ export function SimulationResults({ stats, rules, simulationConfig }: Simulation
         </TabsContent>
 
         <TabsContent value="counting" className="space-y-6">
-          <TrueCountWinRates trueCountStats={stats.trueCountStats || {}} />
+          <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading chart...</div>}>
+            <TrueCountWinRates trueCountStats={stats.trueCountStats || {}} />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </Card>

@@ -1,7 +1,6 @@
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
-
-import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
+import { AlertTriangleIcon, RefreshCwIcon } from "./components/ui/icons";
 
 export const ErrorFallback = ({ error, resetErrorBoundary }) => {
   // When encountering an error in the development mode, rethrow it and don't display the boundary.
